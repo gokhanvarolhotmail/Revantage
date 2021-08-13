@@ -1,0 +1,10 @@
+https://www.howtogeek.com/howto/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/
+
+C:\Users\gvarol\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_SSMS
+mklink /J "C:\Users\gvarol\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_SSMS_Test\" "C:\Users\gvarol\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_SSMS"
+
+
+mklink /J "C:\Users\gvarol\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_SSMS\" "C:\Github\edg-diabloplus-diablodb\SSMSTemplates\"
+mklink /J "C:\Users\gvarol\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_SSMS\" "D:\Users\gvarol\Documents\Github\edg-diabloplus-diablodb\SSMSTemplates\"
+mklink /J "C:\Users\Gokhan Varol\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_Hitachi\" "C:\Users\Gokhan Varol\GitHub\Hitachi\SSMSTemplates\"
+mklink /J "C:\Users\gokha\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_Hitachi\" "C:\Users\gokha\GitHub\Hitachi\SSMSTemplates\"
