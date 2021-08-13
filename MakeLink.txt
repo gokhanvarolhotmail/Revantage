@@ -2,3 +2,7 @@ https://www.howtogeek.com/howto/16226/complete-guide-to-symbolic-links-symlinks-
 
 
 mklink /J "C:\Users\GVarol\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_SSMS\" "C:\Users\GVarol\Documents\GitHub\Revantage\SSMSTemplates\"
+
+mklink /J "C:\Users\gokha\AppData\Roaming\Microsoft\SQL Server Management Studio\18.0\Templates\Sql\_Revantage" "C:\Users\gokha\GitHub\Revantage\SSMSTemplates\"
+
+
