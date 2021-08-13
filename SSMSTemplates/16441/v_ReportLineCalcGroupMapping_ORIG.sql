@@ -1,3 +1,5 @@
+USE [RCS_SqlDw]
+GO
 CREATE VIEW [RCS_DW].[v_ReportLineCalcGroupMapping]
 AS
 SELECT

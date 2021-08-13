@@ -38,3 +38,5 @@ INNER JOIN [RCS_DW].[v_ReportLineGroupMapping] AS [groupmap] ON [map].[LedgerAcc
                                                             AND ( [map].[CategoryDescNotInType] IS NULL
                                                                 OR [map].[CategoryDescNotInType] != [groupmap].[CategoryDesc] ) ;
 GO
+
+sp_text'[RCS_DW].[v_ReportLineGroupMapping]'
