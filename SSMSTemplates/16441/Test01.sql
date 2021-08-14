@@ -1227,3 +1227,5 @@ WITH
 )
 as
 select * From [RCS_DW].[v_ReportLineCalcGroupMapping]
+
+-- 14:03
