@@ -1219,3 +1219,11 @@ select count_BIG(*) as cnt from [RCS_DW].[v_ReportLineCalcGroupMapping]
 
 -- 84654
 -- 14:52
+
+CREATE TABLE [#ReportLineCalcGroupMapping_GVAROL]
+WITH
+(
+ DISTRIBUTION = ROUND_ROBIN
+)
+as
+select * From [RCS_DW].[v_ReportLineCalcGroupMapping]
