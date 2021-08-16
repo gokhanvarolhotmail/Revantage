@@ -1224,7 +1224,7 @@ FROM( SELECT
         , CAST(1 AS DECIMAL(10, 5)) AS [constFactor]
       FROM [#ReportLineBaseGroupMapping]
       WHERE [ReportLineId] = 'L6411' ) AS [datL4183]
-	  OPTION(LABEL = '[RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]')
+	  OPTION(LABEL = 'Build [RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]')
 --1:05
 --00:48
 --(84654 rows affected)
