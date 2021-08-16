@@ -18,6 +18,8 @@ IF OBJECT_ID('tempdb..[#ReportLineBaseGroupMapping]') IS NULL
     FROM [RCS_DW].[v_ReportLineBaseGroupMapping]
 	OPTION(LABEL = 'Build [#ReportLineBaseGroupMapping]')
 -- 2:08
+-- 2:03
+--(24537 rows affected)
 
 IF OBJECT_ID('tempdb..[#ReportLineMapping]') IS not NULL
 DROP TABLE [#ReportLineMapping] ;
@@ -29,6 +31,8 @@ IF OBJECT_ID('tempdb..[#ReportLineMapping]') IS NULL
     INTO [#ReportLineMapping]
     FROM [RCS_DW].[v_ReportLineMapping]
 	OPTION(LABEL = 'Build [#ReportLineMapping]')
+-- 00:02
+--(384 rows affected)
 
 IF OBJECT_ID('[RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]') IS not NULL
 DROP TABLE [RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL] ;
@@ -1222,10 +1226,11 @@ FROM( SELECT
       WHERE [ReportLineId] = 'L6411' ) AS [datL4183]
 	  OPTION(LABEL = '[RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]')
 --1:05
+--00:48
 --(84654 rows affected)
 
 GO
-
+/*
 select count_BIG(*) as cnt from [RCS_DW].[v_ReportLineCalcGroupMapping]
 
 -- 84654
@@ -1240,3 +1245,4 @@ as
 select * From [RCS_DW].[v_ReportLineCalcGroupMapping]
 
 -- 14:03
+*/
