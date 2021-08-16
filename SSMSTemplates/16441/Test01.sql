@@ -36,7 +36,7 @@ DROP TABLE [RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL] ;
 CREATE TABLE [RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]
 WITH
 (
- DISTRIBUTION = HASH([ReportLineGroupId])
+ DISTRIBUTION = REPLICATE
 )
 AS
 SELECT
