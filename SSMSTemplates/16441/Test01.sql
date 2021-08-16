@@ -19,7 +19,18 @@ IF OBJECT_ID('tempdb..[#ReportLineBaseGroupMapping]') IS NULL
 	OPTION(LABEL = 'Build [#ReportLineBaseGroupMapping]')
 -- 2:08
 
-	IF OBJECT_ID('[RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]') IS not NULL
+IF OBJECT_ID('tempdb..[#ReportLineMapping]') IS not NULL
+DROP TABLE [#ReportLineMapping] ;
+
+
+IF OBJECT_ID('tempdb..[#ReportLineMapping]') IS NULL
+    SELECT
+        *
+    INTO [#ReportLineMapping]
+    FROM [RCS_DW].[v_ReportLineMapping]
+	OPTION(LABEL = 'Build [#ReportLineMapping]')
+
+IF OBJECT_ID('[RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]') IS not NULL
 DROP TABLE [RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL] ;
 
 CREATE TABLE [RCS_DW].[v_ReportLineCalcGroupMapping_GVAROL]
@@ -637,7 +648,7 @@ FROM( SELECT
         , [signFactor]
       FROM [#ReportLineBaseGroupMapping]
       WHERE [ReportLineId] = 'L627' ) AS [datL3410]
-CROSS JOIN( SELECT [ReportLineId], [ReportLineItem] FROM [RCS_DW].[v_ReportLineMapping] WHERE [ReportLineId] IN ('L529', 'L351', 'L500', 'L508', 'L517', 'L520'
+CROSS JOIN( SELECT [ReportLineId], [ReportLineItem] FROM [#ReportLineMapping] WHERE [ReportLineId] IN ('L529', 'L351', 'L500', 'L508', 'L517', 'L520'
                                                                                                                  , 'L617')) AS [LineItem]
 UNION ALL
 SELECT
