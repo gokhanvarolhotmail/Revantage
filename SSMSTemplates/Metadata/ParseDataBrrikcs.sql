@@ -87,7 +87,7 @@ ADD
     [FQN] AS QUOTENAME([DatabaseName]) + '.' + QUOTENAME([TableName])
   , [SQLDataType] AS CASE WHEN [DataType] LIKE 'decimal%' THEN [DataType]
                          WHEN [DataType] IN ('INT', 'BIGINT', 'FLOAT', 'DATE') THEN [DataType]
-                         WHEN [DataType] = 'binary' THEN 'varbinar(4000)'
+                         WHEN [DataType] = 'binary' THEN 'VARBINARY(4000)'
                          WHEN [DataType] = 'STRING' THEN 'NVARCHAR(4000)'
                          WHEN [DataType] = 'DOUBLE' THEN 'REAL'
                          WHEN [DataType] = 'TIMESTAMP' THEN 'DATETIME2(7)'
