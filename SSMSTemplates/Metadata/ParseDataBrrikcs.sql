@@ -54,7 +54,13 @@ GROUP BY [k].[DatabaseName]
 GO
 CREATE UNIQUE CLUSTERED INDEX [name] ON [dbo].[views]( [DatabaseName], [ViewName] ) ;
 GO
-ALTER TABLE [dbo].[Views] ADD [FQN] AS QUOTENAME([DatabaseName]) + '.' + QUOTENAME([ViewName]) ;
+ALTER TABLE [dbo].[Views]
+ADD
+    [FQN] AS QUOTENAME([DatabaseName]) + '.' + QUOTENAME([ViewName])
+  , [SQL] AS [Definition] + '
+GO
+'
+  , [ObjectId] AS OBJECT_ID(QUOTENAME([DatabaseName]) + '.' + QUOTENAME([ViewName])) ;
 GO
 DROP TABLE IF EXISTS [dbo].[Tables] ;
 GO
@@ -69,7 +75,9 @@ GROUP BY [DatabaseName]
 GO
 CREATE UNIQUE CLUSTERED INDEX [name] ON [dbo].[Tables]( [DatabaseName], [TableName] ) ;
 GO
-ALTER TABLE [dbo].[Tables] ADD [FQN] AS QUOTENAME([DatabaseName]) + '.' + QUOTENAME([TableName]) ;
+ALTER TABLE [dbo].[Tables] ADD [FQN] AS QUOTENAME([DatabaseName]) + '.' + QUOTENAME([TableName]), [ObjectId] AS
+                                                                                                  OBJECT_ID(
+                                                                                                  QUOTENAME([DatabaseName]) + '.' + QUOTENAME([TableName])) ;
 GO
 DROP TABLE IF EXISTS [dbo].[Columns] ;
 
@@ -119,3 +127,10 @@ GROUP BY [FQN]
        , [DatabaseName]
        , [TableName]
 ORDER BY 1 ;
+GO
+SELECT *
+FROM [dbo].[views] ;
+GO
+SELECT *
+FROM [dbo].[Tables] ;
+GO
