@@ -95,6 +95,13 @@ ADD
                          WHEN [DataType] LIKE 'ARRAY%' THEN 'NVARCHAR(MAX)'
                      END ;
 GO
+
+SELECT DISTINCT
+       CONCAT('IF SCHEMA_ID(''', [f].[DatabaseName], ''') IS NULL EXEC(''CREATE SCHEMA ', QUOTENAME([f].[DatabaseName]), ''')
+GO
+')  AS [SchemaSQL]
+FROM( SELECT [DatabaseName] FROM [dbo].[Tables] UNION ALL SELECT [DATABASENAME] FROM [dbo].[views] ) AS [f] ;
+GO
 SELECT
     [FQN]
   , [DatabaseName]
