@@ -95,6 +95,20 @@ ADD
                          WHEN [DataType] LIKE 'ARRAY%' THEN 'NVARCHAR(MAX)'
                      END ;
 GO
-
-SELECT * FROM [dbo].[Columns]
-GROUP BY 
+SELECT
+    [FQN]
+  , [DatabaseName]
+  , [TableName]
+  , CONCAT(CAST(NULL AS NVARCHAR(MAX)), 'DROP TABLE IF EXISTS ', [FQN], '
+GO
+CREATE TABLE ', [FQN], ' (
+', STRING_AGG(CONCAT(CAST(NULL AS NVARCHAR(MAX)), CHAR(9), QUOTENAME([ColumnName]), ' ', [sqldatatype]), ',
+')WITHIN GROUP(ORDER BY [ColumnId]), '
+)
+GO
+') AS [SQL]
+FROM [dbo].[Columns]
+GROUP BY [FQN]
+       , [DatabaseName]
+       , [TableName]
+ORDER BY 1 ;
