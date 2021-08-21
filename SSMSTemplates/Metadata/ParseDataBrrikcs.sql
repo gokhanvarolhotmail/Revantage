@@ -26,7 +26,7 @@ FROM [#temp] AS [t]
 CROSS APPLY( SELECT TOP( 1 )* FROM [#temp] AS [t2] WHERE [t2].[FieldNum] > [t].[FieldNum] AND RIGHT([t2].[Field], 1) = ')' ORDER BY [t2].[FieldNum] ASC ) AS [t2]
 CROSS APPLY( SELECT * FROM [#temp] AS [t3] WHERE [t3].[FieldNum] > [t].[FieldNum] AND [t3].[FieldNum] <= [t2].[FieldNum] ) AS [t3]
 CROSS APPLY [Util].[dbo].ParseDelimitedColumns32(REPLACE(REPLACE([t].[Field], 'CREATE TABLE `', ''), '` (', ''), '`.`') AS [tn]
-CROSS APPLY [Util].[dbo].ParseDelimitedColumns32(REPLACE(LEFT([t3].[Field], LEN([t3].[Field]) - 1), '`', ''), ' ') AS [cn]
+CROSS APPLY [Util].[dbo].ParseDelimitedColumns32(SUBSTRING([t3].[Field], 2, LEN([t3].[Field]) - 2), '` ') AS [cn]
 WHERE [t].[Field] LIKE 'CREATE TABLE %' ;
 GO
 DROP TABLE IF EXISTS [dbo].[Tables] ;
