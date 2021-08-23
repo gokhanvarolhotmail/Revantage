@@ -1,3 +1,11 @@
+16441 Assess current Asset_Review script being executed in Snowflake and update as needed
+	CREATED STORED PROC [RCS_DW].[usp_PersistFinancialMappings]
+		POPULATING [RCS_DW].[tbl_ReportLineCalcGroupMapping] TABLE
+
+Bret Macky - Devops
+Larry Edlin
+
+
 /*
 
 16199 Property_Dim Stored Procedure Update to Include AcquisitionDate And DispositionDate

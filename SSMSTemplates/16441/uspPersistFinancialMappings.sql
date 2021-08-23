@@ -1,6 +1,14 @@
-IF OBJECT_ID('[RCS_DW].[usp_PersistFinancialMappings]') IS NOT NULL DROP PROCEDURE [RCS_DW].[usp_PersistFinancialMappings]
+-- [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact_flatenned] should use [RCS_DW].[ReportLineCalcGroupMapping]
+
+
+--DROP [RCS_DW].[uspPersistFinancialMappings]
+--CHANGE TO [RCS_DW].[uspPersistFinancialMappings]
+-- drop [RCS_DW].[ReportLineCalcGroupMapping]
+-- change [RCS_DW].[ReportLineCalcGroupMapping]
+go
+IF OBJECT_ID('[RCS_DW].[uspPersistFinancialMappings]') IS NOT NULL DROP PROCEDURE [RCS_DW].[uspPersistFinancialMappings]
 GO
-CREATE PROCEDURE [RCS_DW].[usp_PersistFinancialMappings]
+CREATE PROCEDURE [RCS_DW].[uspPersistFinancialMappings]
 AS
 SET NOCOUNT ON
 
@@ -33,10 +41,10 @@ IF OBJECT_ID('tempdb..[#ReportLineMapping]') IS NULL
     FROM [RCS_DW].[v_ReportLineMapping]
 	OPTION(LABEL = 'Build [#ReportLineMapping]')
 
-IF OBJECT_ID('[RCS_DW].[tbl_ReportLineCalcGroupMapping]') IS not NULL
-DROP TABLE [RCS_DW].[tbl_ReportLineCalcGroupMapping] ;
+IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping]') IS not NULL
+DROP TABLE [RCS_DW].[ReportLineCalcGroupMapping] ;
 
-CREATE TABLE [RCS_DW].[tbl_ReportLineCalcGroupMapping]
+CREATE TABLE [RCS_DW].[ReportLineCalcGroupMapping]
 WITH
 ( DISTRIBUTION = REPLICATE )
 AS
@@ -1221,4 +1229,4 @@ FROM( SELECT
         , CAST(1 AS DECIMAL(10, 5)) AS [constFactor]
       FROM [#ReportLineBaseGroupMapping]
       WHERE [ReportLineId] = 'L6411' ) AS [datL4183]
-	  OPTION(LABEL = 'Build [RCS_DW].[tbl_ReportLineCalcGroupMapping]')
+	  OPTION(LABEL = 'Build [RCS_DW].[ReportLineCalcGroupMapping]')
