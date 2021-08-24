@@ -1,3 +1,6 @@
+USE [RCS_SqlDw]
+GO
+DROP TABLE [RCS_DW].[ReportLineCalcGroupMapping] ;
 -- [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact_flatenned] should use [RCS_DW].[ReportLineCalcGroupMapping]
 
 
@@ -12,7 +15,7 @@ CREATE PROCEDURE [RCS_DW].[uspPersistFinancialMappings]
 AS
 SET NOCOUNT ON
 
-IF OBJECT_ID('tempdb..[#ReportLineBaseGroupMapping]') IS not NULL
+IF OBJECT_ID('tempdb..[#ReportLineBaseGroupMapping]') IS NOT NULL
 DROP TABLE [#ReportLineBaseGroupMapping] ;
 
 IF OBJECT_ID('tempdb..[#ReportLineBaseGroupMapping]') IS NULL
@@ -41,12 +44,11 @@ IF OBJECT_ID('tempdb..[#ReportLineMapping]') IS NULL
     FROM [RCS_DW].[v_ReportLineMapping]
 	OPTION(LABEL = 'Build [#ReportLineMapping]')
 
-IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping]') IS not NULL
-DROP TABLE [RCS_DW].[ReportLineCalcGroupMapping] ;
+IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping_New]') IS NOT NULL
+	DROP TABLE [RCS_DW].[ReportLineCalcGroupMapping_New] ;
 
-CREATE TABLE [RCS_DW].[ReportLineCalcGroupMapping]
-WITH
-( DISTRIBUTION = REPLICATE )
+CREATE TABLE [RCS_DW].[ReportLineCalcGroupMapping_New]
+WITH ( DISTRIBUTION = REPLICATE )
 AS
 SELECT
     [ReportLineId]
@@ -1230,3 +1232,12 @@ FROM( SELECT
       FROM [#ReportLineBaseGroupMapping]
       WHERE [ReportLineId] = 'L6411' ) AS [datL4183]
 	  OPTION(LABEL = 'Build [RCS_DW].[ReportLineCalcGroupMapping]')
+
+IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping]') IS NOT NULL
+	RENAME OBJECT [RCS_DW].[ReportLineCalcGroupMapping] TO [ReportLineCalcGroupMapping_Old];
+
+RENAME OBJECT [RCS_DW].[ReportLineCalcGroupMapping_New] TO [ReportLineCalcGroupMapping];
+
+IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping_Old]') IS NOT NULL
+	DROP TABLE [RCS_DW].[ReportLineCalcGroupMapping_Old]
+GO
