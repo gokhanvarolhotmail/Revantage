@@ -8,8 +8,7 @@ GO
 SET NOCOUNT ON
 DECLARE
     @Getdate  DATETIME2(7)
-  , @Debug    BIT         = 1
-  , @Rowcount BIGINT ;
+  , @Debug    BIT         = 1 ;
 
 IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_New]') IS NOT NULL
     DROP TABLE [RCS_DW].[Asset_Review_RPT_New] ;
@@ -49,73 +48,58 @@ IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
 
 SET @Getdate = GETDATE() ;
 
-
-CREATE TABLE [#REPORTLINECALCGROUPMAPPING]
-AS
 SELECT *
+INTO [#REPORTLINECALCGROUPMAPPING]
 FROM [RCS_DW].[v_ReportLineCalcGroupMapping] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
-
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#REPORTLINECALCGROUPMAPPING], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#REPORTLINECALCGROUPMAPPING], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#BookHierarchy_Dim]
-AS
 SELECT *
+INTO [#BookHierarchy_Dim]
 FROM [RCS_DW].[v_BookHierarchy_Dim] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
-
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#BookHierarchy_Dim], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#BookHierarchy_Dim], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#Scenario_Dim]
-AS
 SELECT *
+INTO [#Scenario_Dim]
 FROM [RCS_DW].[v_Scenario_Dim] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
-
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#Scenario_Dim], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#Scenario_Dim], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#GL_Monthly_Balance_Activity_Fact]
-AS
 SELECT *
+INTO [#GL_Monthly_Balance_Activity_Fact]
 FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
-
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#GL_Monthly_Balance_Activity_Fact], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#GL_Monthly_Balance_Activity_Fact], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#ReportLineItems]
-AS
 SELECT
     [rlcg].[ReportLineGroupId]
   , [rlcg].[CostCenter_SK]
@@ -123,22 +107,19 @@ SELECT
   , [rli].[ReportLineItem]
   , [rlcg].[LedgerAccountName]
   , [rlcg].[CategoryDesc]
+INTO [#ReportLineItems]
 FROM [#REPORTLINECALCGROUPMAPPING] AS [rlcg]
 INNER JOIN [RCS_DW].[ReportLineItem] AS [rli] ON [rlcg].[ReportLineItem] = [rli].[ReportLineItem] ;
-
-SELECT @Rowcount = @@ROWCOUNT ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#ReportLineItems], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#ReportLineItems], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#Asset_Review_Actuals]
-AS
 SELECT
     [pd].[PropertyID_AK]
   , [pd].[PropertyName]
@@ -153,6 +134,7 @@ SELECT
   , [rlbgm].[LedgerAccountName]
   , [rlbgm].[CategoryDesc]
   , SUM([mbaf].[PeriodAmount]) AS [PeriodAmount]
+INTO [#Asset_Review_Actuals]
 FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [IsCurrent] = 1
@@ -175,19 +157,16 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#Asset_Review_Actuals], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#Asset_Review_Actuals], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#Asset_Review_Budget]
-AS
 SELECT
     [pd].[PropertyID_AK]
   , [pd].[PropertyName]
@@ -202,6 +181,7 @@ SELECT
   , [rlbgm].[LedgerAccountName]
   , [rlbgm].[CategoryDesc]
   , SUM([mbaf].[PeriodAmount]) AS [PeriodAmount]
+INTO [#Asset_Review_Budget]
 FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
@@ -226,19 +206,16 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#Asset_Review_Budget], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#Asset_Review_Budget], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#Asset_Review_Blend]
-AS
 SELECT
     [pd].[PropertyID_AK]
   , [pd].[PropertyName]
@@ -267,6 +244,7 @@ SELECT
         WHEN [sd1].[Scenario_AK] = 'December_Scenario' THEN 12
     END AS [Scenario_Rank]
   , SUM([mbaf].[PeriodAmount]) AS [PeriodAmount]
+INTO [#Asset_Review_Blend]
 FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
@@ -295,32 +273,28 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_AK] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#Asset_Review_Blend], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#Asset_Review_Blend], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
 
-CREATE TABLE [#YearMonth_Dim]
-AS
 SELECT DISTINCT
        [Year]
      , [YearMonth]
      , [Month]
+INTO [#YearMonth_Dim]
 FROM [hospitality_DW].[DATE_DIM]
 WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE()) ;
-
-SELECT @Rowcount = @@ROWCOUNT ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#YearMonth_Dim], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [#YearMonth_Dim], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
@@ -566,12 +540,11 @@ FROM( SELECT
       INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
       CROSS JOIN( SELECT 'CALC' AS [TS] UNION ALL SELECT 'FY' AS [TS] ) AS [ua] ) AS [x] ;
 
-SELECT @Rowcount = @@ROWCOUNT ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [RCS_DW].[Asset_Review_RPT_New], Rows: ' , @Rowcount, ', DurationSec: '
+                  'Build [RCS_DW].[Asset_Review_RPT_New], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
