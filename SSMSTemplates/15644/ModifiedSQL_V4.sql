@@ -1,5 +1,3 @@
-USE [RCS_SqlDw_NoView] ;
-GO
 -- 15 mins
 --DROP TABLE RCS_DW.TEMP_ReportLineItems
 --CREATE TABLE RCS_DW.TEMP_ReportLineItems
@@ -300,251 +298,349 @@ IF @Debug = 1
         SET @Getdate = GETDATE() ;
     END ;
 
+
 CREATE TABLE [RCS_DW].[Asset_Review_RPT_New]
 WITH (DISTRIBUTION = ROUND_ROBIN, HEAP)
 AS
-SELECT *
-FROM( SELECT
-          [acte1].[PropertyID_AK]
-        , [acte1].[PropertyName]
-        , [acte1].[CostCenterDesc]
-        , [acte1].[OutletName]
-        , [acte1].[AsOfDate]
-        , 'MTD' AS [TimeSeries]
-        , 'Actual_Forecast' AS [Type]
-        , 'Actual' AS [Scenario]
-        , [acte1].[FiscalYear]
-        , [acte1].[FiscalMonth]
-        , [acte1].[ReportLineId]
-        , [acte1].[ReportLineGroupId]
-        , [acte1].[ReportLineItem]
-        , [acte1].[LedgerAccountName]
-        , [acte1].[CategoryDesc]
-        , [acte1].[PeriodAmount]
-      FROM [#Asset_Review_Actuals] AS [acte1]
-      UNION ALL
-      SELECT
-          [acte].[PropertyID_AK]
-        , [acte].[PropertyName]
-        , [acte].[CostCenterDesc]
-        , [acte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , [ua].[TimeSeries]
-        , [ua].[Type]
-        , [ua].[Scenario]
-        , [acte].[FiscalYear]
-        , [acte].[FiscalMonth]
-        , [acte].[ReportLineId]
-        , [acte].[ReportLineGroupId]
-        , [acte].[ReportLineItem]
-        , [acte].[LedgerAccountName]
-        , [acte].[CategoryDesc]
-        , [acte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
-      CROSS JOIN( SELECT
-                      'YTD' AS [TimeSeries]
-                    , 'Actual_Forecast' AS [Type]
-                    , 'Actual' AS [Scenario]
-                  UNION ALL
-                  SELECT
-                      'FY' AS [TimeSeries]
-                    , 'Actual_Forecast' AS [Type]
-                    , 'Actual' AS [Scenario] ) AS [ua]
-      UNION ALL
-      SELECT
-          [bcte1].[PropertyID_AK]
-        , [bcte1].[PropertyName]
-        , [bcte1].[CostCenterDesc]
-        , [bcte1].[OutletName]
-        , [bcte1].[AsOfDate]
-        , 'MTD' AS [TimeSeries]
-        , 'Budget' AS [Type]
-        , 'Budget' AS [Scenario]
-        , [bcte1].[FiscalYear]
-        , [bcte1].[FiscalMonth]
-        , [bcte1].[ReportLineId]
-        , [bcte1].[ReportLineGroupId]
-        , [bcte1].[ReportLineItem]
-        , [bcte1].[LedgerAccountName]
-        , [bcte1].[CategoryDesc]
-        , [bcte1].[PeriodAmount]
-      FROM [#Asset_Review_Budget] AS [bcte1]
-      UNION ALL
-      SELECT
-          [bcte].[PropertyID_AK]
-        , [bcte].[PropertyName]
-        , [bcte].[CostCenterDesc]
-        , [bcte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , 'YTD' AS [TimeSeries]
-        , 'Budget' AS [Type]
-        , 'Budget' AS [Scenario]
-        , [bcte].[FiscalYear]
-        , [bcte].[FiscalMonth]
-        , [bcte].[ReportLineId]
-        , [bcte].[ReportLineGroupId]
-        , [bcte].[ReportLineItem]
-        , [bcte].[LedgerAccountName]
-        , [bcte].[CategoryDesc]
-        , [bcte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
-      UNION ALL
-      SELECT
-          [bcte].[PropertyID_AK]
-        , [bcte].[PropertyName]
-        , [bcte].[CostCenterDesc]
-        , [bcte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , 'BOY' AS [TimeSeries]
-        , 'Budget' AS [Type]
-        , 'Budget' AS [Scenario]
-        , [bcte].[FiscalYear]
-        , [bcte].[FiscalMonth]
-        , [bcte].[ReportLineId]
-        , [bcte].[ReportLineGroupId]
-        , [bcte].[ReportLineItem]
-        , [bcte].[LedgerAccountName]
-        , [bcte].[CategoryDesc]
-        , [bcte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] < [bcte].[FiscalMonth]
-      UNION ALL
-      SELECT
-          [bcte].[PropertyID_AK]
-        , [bcte].[PropertyName]
-        , [bcte].[CostCenterDesc]
-        , [bcte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , 'FY' AS [TimeSeries]
-        , 'Budget' AS [Type]
-        , 'Budget' AS [Scenario]
-        , [bcte].[FiscalYear]
-        , [bcte].[FiscalMonth]
-        , [bcte].[ReportLineId]
-        , [bcte].[ReportLineGroupId]
-        , [bcte].[ReportLineItem]
-        , [bcte].[LedgerAccountName]
-        , [bcte].[CategoryDesc]
-        , [bcte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
-      UNION ALL
-      SELECT
-          [bcte].[PropertyID_AK]
-        , [bcte].[PropertyName]
-        , [bcte].[CostCenterDesc]
-        , [bcte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , [ua].[TimeSeries]
-        , [ua].[Type]
-        , [bcte].[Scenario_AK] AS [Scenario]
-        , [bcte].[FiscalYear]
-        , [bcte].[FiscalMonth]
-        , [bcte].[ReportLineId]
-        , [bcte].[ReportLineGroupId]
-        , [bcte].[ReportLineItem]
-        , [bcte].[LedgerAccountName]
-        , [bcte].[CategoryDesc]
-        , [bcte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
-                                                AND [ymd].[Month] = [bcte].[Scenario_Rank]
-                                                AND [ymd].[Month] < [bcte].[FiscalMonth]
-      CROSS JOIN( SELECT 'BOY' AS [TimeSeries], 'Actual_Forecast' AS [Type] UNION ALL SELECT 'FY' AS [TimeSeries], 'Actual_Forecast' AS [Type] ) AS [ua]
-
-      -- start of the last year / two year ago 
-      UNION ALL
-      SELECT
-          [acte].[PropertyID_AK]
-        , [acte].[PropertyName]
-        , [acte].[CostCenterDesc]
-        , [acte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , CASE WHEN [ua].[TS] = 'CALC' THEN CASE WHEN [ymd].[Month] >= [acte].[FiscalMonth] THEN 'YTD' ELSE 'BOY' END WHEN [ua].[TS] = 'FY' THEN 'FY' END AS [TimeSeries]
-        , 'LY' AS [Type]
-        , 'Actual' AS [Scenario]
-        , [acte].[FiscalYear]
-        , [acte].[FiscalMonth]
-        , [acte].[ReportLineId]
-        , [acte].[ReportLineGroupId]
-        , [acte].[ReportLineItem]
-        , [acte].[LedgerAccountName]
-        , [acte].[CategoryDesc]
-        , [acte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
-      CROSS JOIN( SELECT 'FY' AS [TS] UNION ALL SELECT 'CALC' AS [TS] ) AS [ua]
-      UNION ALL
-      SELECT
-          [acte].[PropertyID_AK]
-        , [acte].[PropertyName]
-        , [acte].[CostCenterDesc]
-        , [acte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , 'MTD' AS [TimeSeries]
-        , 'LY' AS [Type]
-        , 'Actual' AS [Scenario]
-        , [acte].[FiscalYear]
-        , [acte].[FiscalMonth]
-        , [acte].[ReportLineId]
-        , [acte].[ReportLineGroupId]
-        , [acte].[ReportLineItem]
-        , [acte].[LedgerAccountName]
-        , [acte].[CategoryDesc]
-        , [acte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
-                                                  AND [ymd].[Month] = [acte].[FiscalMonth]
-      UNION ALL
-      SELECT
-          [acte].[PropertyID_AK]
-        , [acte].[PropertyName]
-        , [acte].[CostCenterDesc]
-        , [acte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , 'MTD' AS [TimeSeries]
-        , CAST([acte].[FiscalYear] AS VARCHAR(15)) AS [Type]
-        , 'Actual' AS [Scenario]
-        , [acte].[FiscalYear]
-        , [acte].[FiscalMonth]
-        , [acte].[ReportLineId]
-        , [acte].[ReportLineGroupId]
-        , [acte].[ReportLineItem]
-        , [acte].[LedgerAccountName]
-        , [acte].[CategoryDesc]
-        , [acte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
-                                                  AND [ymd].[Month] = [acte].[FiscalMonth]
-      UNION ALL
-      SELECT
-          [acte].[PropertyID_AK]
-        , [acte].[PropertyName]
-        , [acte].[CostCenterDesc]
-        , [acte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , CASE WHEN [ua].[TS] = 'CALC' THEN CASE WHEN [ymd].[Month] >= [acte].[FiscalMonth] THEN 'YTD' ELSE 'BOY' END WHEN [ua].[TS] = 'FY' THEN 'FY' END AS [TimeSeries]
-        , CAST([acte].[FiscalYear] AS VARCHAR(15)) AS [Type]
-        , 'Actual' AS [Scenario]
-        , [acte].[FiscalYear]
-        , [acte].[FiscalMonth]
-        , [acte].[ReportLineId]
-        , [acte].[ReportLineGroupId]
-        , [acte].[ReportLineItem]
-        , [acte].[LedgerAccountName]
-        , [acte].[CategoryDesc]
-        , [acte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
-      CROSS JOIN( SELECT 'CALC' AS [TS] UNION ALL SELECT 'FY' AS [TS] ) AS [ua] ) AS [x] ;
-
+SELECT
+    [acte1].[PropertyID_AK]
+, [acte1].[PropertyName]
+, [acte1].[CostCenterDesc]
+, [acte1].[OutletName]
+, [acte1].[AsOfDate]
+, 'MTD' AS [TimeSeries]
+, 'Actual_Forecast' AS [Type]
+, 'Actual' AS [Scenario]
+, [acte1].[FiscalYear]
+, [acte1].[FiscalMonth]
+, [acte1].[ReportLineId]
+, [acte1].[ReportLineGroupId]
+, [acte1].[ReportLineItem]
+, [acte1].[LedgerAccountName]
+, [acte1].[CategoryDesc]
+, [acte1].[PeriodAmount]
+FROM [#Asset_Review_Actuals] AS [acte1]
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [RCS_DW].[Asset_Review_RPT_New], DurationSec: '
+                  'Build [RCS_DW].[Asset_Review_RPT_New] Step 1, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [acte].[PropertyID_AK]
+, [acte].[PropertyName]
+, [acte].[CostCenterDesc]
+, [acte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, [ua].[TimeSeries]
+, [ua].[Type]
+, [ua].[Scenario]
+, [acte].[FiscalYear]
+, [acte].[FiscalMonth]
+, [acte].[ReportLineId]
+, [acte].[ReportLineGroupId]
+, [acte].[ReportLineItem]
+, [acte].[LedgerAccountName]
+, [acte].[CategoryDesc]
+, [acte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
+CROSS JOIN( SELECT
+                'YTD' AS [TimeSeries]
+            , 'Actual_Forecast' AS [Type]
+            , 'Actual' AS [Scenario]
+            UNION ALL
+            SELECT
+                'FY' AS [TimeSeries]
+            , 'Actual_Forecast' AS [Type]
+            , 'Actual' AS [Scenario] ) AS [ua]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 2, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [bcte1].[PropertyID_AK]
+, [bcte1].[PropertyName]
+, [bcte1].[CostCenterDesc]
+, [bcte1].[OutletName]
+, [bcte1].[AsOfDate]
+, 'MTD' AS [TimeSeries]
+, 'Budget' AS [Type]
+, 'Budget' AS [Scenario]
+, [bcte1].[FiscalYear]
+, [bcte1].[FiscalMonth]
+, [bcte1].[ReportLineId]
+, [bcte1].[ReportLineGroupId]
+, [bcte1].[ReportLineItem]
+, [bcte1].[LedgerAccountName]
+, [bcte1].[CategoryDesc]
+, [bcte1].[PeriodAmount]
+FROM [#Asset_Review_Budget] AS [bcte1]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 3, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [bcte].[PropertyID_AK]
+, [bcte].[PropertyName]
+, [bcte].[CostCenterDesc]
+, [bcte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, 'YTD' AS [TimeSeries]
+, 'Budget' AS [Type]
+, 'Budget' AS [Scenario]
+, [bcte].[FiscalYear]
+, [bcte].[FiscalMonth]
+, [bcte].[ReportLineId]
+, [bcte].[ReportLineGroupId]
+, [bcte].[ReportLineItem]
+, [bcte].[LedgerAccountName]
+, [bcte].[CategoryDesc]
+, [bcte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 4, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [bcte].[PropertyID_AK]
+, [bcte].[PropertyName]
+, [bcte].[CostCenterDesc]
+, [bcte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, 'BOY' AS [TimeSeries]
+, 'Budget' AS [Type]
+, 'Budget' AS [Scenario]
+, [bcte].[FiscalYear]
+, [bcte].[FiscalMonth]
+, [bcte].[ReportLineId]
+, [bcte].[ReportLineGroupId]
+, [bcte].[ReportLineItem]
+, [bcte].[LedgerAccountName]
+, [bcte].[CategoryDesc]
+, [bcte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] < [bcte].[FiscalMonth]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 5, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [bcte].[PropertyID_AK]
+, [bcte].[PropertyName]
+, [bcte].[CostCenterDesc]
+, [bcte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, 'FY' AS [TimeSeries]
+, 'Budget' AS [Type]
+, 'Budget' AS [Scenario]
+, [bcte].[FiscalYear]
+, [bcte].[FiscalMonth]
+, [bcte].[ReportLineId]
+, [bcte].[ReportLineGroupId]
+, [bcte].[ReportLineItem]
+, [bcte].[LedgerAccountName]
+, [bcte].[CategoryDesc]
+, [bcte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 6, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [bcte].[PropertyID_AK]
+, [bcte].[PropertyName]
+, [bcte].[CostCenterDesc]
+, [bcte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, [ua].[TimeSeries]
+, [ua].[Type]
+, [bcte].[Scenario_AK] AS [Scenario]
+, [bcte].[FiscalYear]
+, [bcte].[FiscalMonth]
+, [bcte].[ReportLineId]
+, [bcte].[ReportLineGroupId]
+, [bcte].[ReportLineItem]
+, [bcte].[LedgerAccountName]
+, [bcte].[CategoryDesc]
+, [bcte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
+                                        AND [ymd].[Month] = [bcte].[Scenario_Rank]
+                                        AND [ymd].[Month] < [bcte].[FiscalMonth]
+CROSS JOIN( SELECT 'BOY' AS [TimeSeries], 'Actual_Forecast' AS [Type] UNION ALL SELECT 'FY' AS [TimeSeries], 'Actual_Forecast' AS [Type] ) AS [ua]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 7, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [acte].[PropertyID_AK]
+, [acte].[PropertyName]
+, [acte].[CostCenterDesc]
+, [acte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, CASE WHEN [ua].[TS] = 'CALC' THEN CASE WHEN [ymd].[Month] >= [acte].[FiscalMonth] THEN 'YTD' ELSE 'BOY' END WHEN [ua].[TS] = 'FY' THEN 'FY' END AS [TimeSeries]
+, 'LY' AS [Type]
+, 'Actual' AS [Scenario]
+, [acte].[FiscalYear]
+, [acte].[FiscalMonth]
+, [acte].[ReportLineId]
+, [acte].[ReportLineGroupId]
+, [acte].[ReportLineItem]
+, [acte].[LedgerAccountName]
+, [acte].[CategoryDesc]
+, [acte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
+CROSS JOIN( SELECT 'FY' AS [TS] UNION ALL SELECT 'CALC' AS [TS] ) AS [ua]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 8, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [acte].[PropertyID_AK]
+, [acte].[PropertyName]
+, [acte].[CostCenterDesc]
+, [acte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, 'MTD' AS [TimeSeries]
+, 'LY' AS [Type]
+, 'Actual' AS [Scenario]
+, [acte].[FiscalYear]
+, [acte].[FiscalMonth]
+, [acte].[ReportLineId]
+, [acte].[ReportLineGroupId]
+, [acte].[ReportLineItem]
+, [acte].[LedgerAccountName]
+, [acte].[CategoryDesc]
+, [acte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
+                                            AND [ymd].[Month] = [acte].[FiscalMonth]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 9, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [acte].[PropertyID_AK]
+, [acte].[PropertyName]
+, [acte].[CostCenterDesc]
+, [acte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, 'MTD' AS [TimeSeries]
+, CAST([acte].[FiscalYear] AS VARCHAR(15)) AS [Type]
+, 'Actual' AS [Scenario]
+, [acte].[FiscalYear]
+, [acte].[FiscalMonth]
+, [acte].[ReportLineId]
+, [acte].[ReportLineGroupId]
+, [acte].[ReportLineItem]
+, [acte].[LedgerAccountName]
+, [acte].[CategoryDesc]
+, [acte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
+                                            AND [ymd].[Month] = [acte].[FiscalMonth]
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 10, DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+INSERT [RCS_DW].[Asset_Review_RPT_New]
+SELECT
+    [acte].[PropertyID_AK]
+, [acte].[PropertyName]
+, [acte].[CostCenterDesc]
+, [acte].[OutletName]
+, [ymd].[YearMonth] AS [AsOfDate]
+, CASE WHEN [ua].[TS] = 'CALC' THEN CASE WHEN [ymd].[Month] >= [acte].[FiscalMonth] THEN 'YTD' ELSE 'BOY' END WHEN [ua].[TS] = 'FY' THEN 'FY' END AS [TimeSeries]
+, CAST([acte].[FiscalYear] AS VARCHAR(15)) AS [Type]
+, 'Actual' AS [Scenario]
+, [acte].[FiscalYear]
+, [acte].[FiscalMonth]
+, [acte].[ReportLineId]
+, [acte].[ReportLineGroupId]
+, [acte].[ReportLineItem]
+, [acte].[LedgerAccountName]
+, [acte].[CategoryDesc]
+, [acte].[PeriodAmount]
+FROM [#YearMonth_Dim] AS [ymd]
+INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
+CROSS JOIN( SELECT 'CALC' AS [TS] UNION ALL SELECT 'FY' AS [TS] ) AS [ua] 
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Insert [RCS_DW].[Asset_Review_RPT_New] Step 11, DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
