@@ -93,7 +93,9 @@ CREATE TABLE [hospitality_DW].[BREIT_RPT]
 	[L3M_WorkdayRoomRevenue] [decimal](38, 2) NULL,
 	[L3M_WorkdayOccupancy] [decimal](38, 6) NULL,
 	[L3M_WorkdayADR] [decimal](38, 6) NULL,
-	[L3M_WorkdayRevPAR] [decimal](38, 6) NULL
+	[L3M_WorkdayRevPAR] [decimal](38, 6) NULL,
+	[AcquisitionDate] [date] NULL,
+	[DateOpened] [datetime2](7) NULL
 )
 WITH
 (

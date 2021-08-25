@@ -264,6 +264,8 @@ BEGIN
 				,[L3M_WorkdayOccupancy]
 				,[L3M_WorkdayADR]
 				,[L3M_WorkdayRevPAR]
+				,[AcquisitionDate]
+				,[DateOpened]
 			)
 			SELECT 
 				pd.PropertyName
@@ -364,6 +366,8 @@ BEGIN
 				,CASE
 					WHEN rcs_dw.WorkdayAvailableRooms > 0 THEN (rcs_dw.L3M_WorkdayRoomRevenue / rcs_dw.L3M_WorkdayAvailableRooms)
 				END AS L3M_WorkdayRevPAR
+				,pd.AcquisitionDate
+				,hd.DateOpened
 			FROM [hospitality_DW].[PROPERTY_DIM] pd
 			JOIN [hospitality_DW].[HOTEL_DIM] hd
 				ON pd.StrId = hd.StrId
