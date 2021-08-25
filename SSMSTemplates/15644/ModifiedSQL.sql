@@ -1,21 +1,50 @@
-USE [RCS_SqlDw]
+USE [RCS_SqlDw_NoView] ;
 GO
 -- 15 mins
 --DROP TABLE RCS_DW.TEMP_ReportLineItems
 --CREATE TABLE RCS_DW.TEMP_ReportLineItems
 --WITH (DISTRIBUTION=REPLICATE,HEAP )
 --AS
+
+IF OBJECT_ID('[tempdb]..[#REPORTLINECALCGROUPMAPPING]') IS NOT NULL
+    DROP TABLE [#REPORTLINECALCGROUPMAPPING] ;
+
+SELECT *
+INTO [#REPORTLINECALCGROUPMAPPING]
+FROM [RCS_DW].[v_ReportLineCalcGroupMapping] ;
+
+IF OBJECT_ID('[tempdb]..[#BookHierarchy_Dim]') IS NOT NULL
+    DROP TABLE [#BookHierarchy_Dim] ;
+
+SELECT *
+INTO [#BookHierarchy_Dim]
+FROM [RCS_DW].[v_BookHierarchy_Dim] ;
+
+IF OBJECT_ID('[tempdb]..[#Scenario_Dim]') IS NOT NULL
+    DROP TABLE [#Scenario_Dim] ;
+
+SELECT *
+INTO [#Scenario_Dim]
+FROM [RCS_DW].[v_Scenario_Dim] ;
+
+IF OBJECT_ID('[tempdb]..[#GL_Monthly_Balance_Activity_Fact]') IS NOT NULL
+    DROP TABLE [#GL_Monthly_Balance_Activity_Fact] ;
+
+SELECT *
+INTO [#GL_Monthly_Balance_Activity_Fact]
+FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact] ;
+
 DROP TABLE IF EXISTS [RCS_DW].[TEMP_ReportLineItems] ;
 
 SELECT
-    [ReportLineGroupId]
-  , [CostCenter_SK]
-  , [ReportLineId]
+    [rlcg].[ReportLineGroupId]
+  , [rlcg].[CostCenter_SK]
+  , [rlcg].[ReportLineId]
   , [rli].[ReportLineItem]
-  , [LedgerAccountName]
-  , [CategoryDesc]
+  , [rlcg].[LedgerAccountName]
+  , [rlcg].[CategoryDesc]
 INTO [RCS_DW].[TEMP_ReportLineItems]
-FROM [RCS_DW].[V_REPORTLINECALCGROUPMAPPING] AS [rlcg]
+FROM [#REPORTLINECALCGROUPMAPPING] AS [rlcg]
 INNER JOIN [RCS_DW].[ReportLineItem] AS [rli] ON [rlcg].[ReportLineItem] = [rli].[ReportLineItem] ;
 
 DROP TABLE IF EXISTS [RCS_DW].[TEMP_GLMonthlyBalanceActivity] ;
@@ -26,7 +55,7 @@ DROP TABLE IF EXISTS [RCS_DW].[TEMP_GLMonthlyBalanceActivity] ;
 --AS
 SELECT *
 INTO [RCS_DW].[TEMP_GLMonthlyBalanceActivity]
-FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact] ;
+FROM [#GL_Monthly_Balance_Activity_Fact] ;
 
 DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Actuals] ;
 
@@ -35,7 +64,7 @@ DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Actuals] ;
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
 SELECT
-    [pd].[PropertyId_AK]
+    [pd].[PropertyID_AK]
   , [pd].[PropertyName]
   , [ccd].[CostCenterDesc]
   , [od].[OutletName]
@@ -47,18 +76,18 @@ SELECT
   , [rlbgm].[ReportLineItem]
   , [rlbgm].[LedgerAccountName]
   , [rlbgm].[CategoryDesc]
-  , SUM([PeriodAmount]) AS [PeriodAmount]
+  , SUM([mbaf].[PeriodAmount]) AS [PeriodAmount]
 INTO [RCS_DW].[Asset_Review_Actuals]
 FROM [RCS_DW].[TEMP_ReportLineItems] AS [rlbgm]
 INNER JOIN [RCS_DW].[TEMP_GLMonthlyBalanceActivity] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [IsCurrent] = 1
-INNER JOIN [RCS_DW].[V_BOOKHIERARCHY_DIM] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[BookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
-INNER JOIN [RCS_DW].[v_SCENARIO_DIM] AS [sd1] ON [mbaf].[scenario_SK] = [sd1].[scenario_SK] AND [sd1].[ScenarioDesc] = 'Actuals'
-INNER JOIN [RCS_DW].[COMPANY_DIM] AS [cd] ON [mbaf].[company_SK] = [cd].[company_SK] AND [cd].[IsCurrent] = 1
-INNER JOIN [HOSPITALITY_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyId_AK] = [pd].[PropertyId_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
-INNER JOIN [RCS_DW].[COST_CENTER_DIM] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
-LEFT JOIN [RCS_DW].[OUTLET_DIM] AS [od] ON [cd].[company_sk] = [od].[company_sk] AND [ccd].[costcenter_sk] = [od].[costcenter_sk] AND [od].[IsCurrent] = 1
-GROUP BY [pd].[PropertyId_AK]
+INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
+INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Actuals'
+INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
+INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
+INNER JOIN [RCS_DW].[Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
+LEFT JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
+GROUP BY [pd].[PropertyID_AK]
        , [pd].[PropertyName]
        , [ccd].[CostCenterDesc]
        , [od].[OutletName]
@@ -69,7 +98,7 @@ GROUP BY [pd].[PropertyId_AK]
        , [rlbgm].[ReportLineItem]
        , [rlbgm].[LedgerAccountName]
        , [rlbgm].[CategoryDesc]
-       , [sd1].[scenario_SK] ;
+       , [sd1].[Scenario_SK] ;
 
 DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Budget] ;
 
@@ -77,7 +106,7 @@ DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Budget] ;
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
 SELECT
-    [pd].[PropertyId_AK]
+    [pd].[PropertyID_AK]
   , [pd].[PropertyName]
   , [ccd].[CostCenterDesc]
   , [od].[OutletName]
@@ -89,22 +118,20 @@ SELECT
   , [rlbgm].[ReportLineItem]
   , [rlbgm].[LedgerAccountName]
   , [rlbgm].[CategoryDesc]
-  , SUM([PeriodAmount]) AS [PeriodAmount]
+  , SUM([mbaf].[PeriodAmount]) AS [PeriodAmount]
 INTO [RCS_DW].[Asset_Review_Budget]
 FROM [RCS_DW].[TEMP_ReportLineItems] AS [rlbgm]
 INNER JOIN [RCS_DW].[TEMP_GLMonthlyBalanceActivity] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
-INNER JOIN [RCS_DW].[V_BOOKHIERARCHY_DIM] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[BookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
-INNER JOIN [RCS_DW].[v_Scenario_Dim] AS [sd1] ON [mbaf].[scenario_SK] = [sd1].[scenario_SK]
-                                             AND [sd1].[ScenarioDesc] = 'Budget'
-                                             AND [sd1].[Scenario_AK] = 'Approved'
-INNER JOIN [RCS_DW].[COMPANY_DIM] AS [cd] ON [mbaf].[company_SK] = [cd].[company_SK] AND [cd].[IsCurrent] = 1
-INNER JOIN [HOSPITALITY_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyId_AK] = [pd].[PropertyId_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
-INNER JOIN [RCS_DW].[COST_CENTER_DIM] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
-LEFT OUTER JOIN [RCS_DW].[OUTLET_DIM] AS [od] ON [cd].[company_sk] = [od].[company_sk]
-                                             AND [ccd].[costcenter_sk] = [od].[costcenter_sk]
+INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
+INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Budget' AND [sd1].[Scenario_AK] = 'Approved'
+INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
+INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
+INNER JOIN [RCS_DW].[Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
+LEFT OUTER JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK]
+                                             AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK]
                                              AND [od].[IsCurrent] = 1
-GROUP BY [pd].[PropertyId_AK]
+GROUP BY [pd].[PropertyID_AK]
        , [pd].[PropertyName]
        , [ccd].[CostCenterDesc]
        , [od].[OutletName]
@@ -115,7 +142,7 @@ GROUP BY [pd].[PropertyId_AK]
        , [rlbgm].[ReportLineItem]
        , [rlbgm].[LedgerAccountName]
        , [rlbgm].[CategoryDesc]
-       , [sd1].[scenario_SK] ;
+       , [sd1].[Scenario_SK] ;
 
 DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Blend] ;
 
@@ -123,7 +150,7 @@ DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Blend] ;
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
 SELECT
-    [pd].[PropertyId_AK]
+    [pd].[PropertyID_AK]
   , [pd].[PropertyName]
   , [ccd].[CostCenterDesc]
   , [od].[OutletName]
@@ -149,24 +176,24 @@ SELECT
         WHEN [sd1].[Scenario_AK] = 'November_Scenario' THEN 11
         WHEN [sd1].[Scenario_AK] = 'December_Scenario' THEN 12
     END AS [Scenario_Rank]
-  , SUM([PeriodAmount]) AS [PeriodAmount]
+  , SUM([mbaf].[PeriodAmount]) AS [PeriodAmount]
 INTO [RCS_DW].[Asset_Review_Blend]
 FROM [RCS_DW].[TEMP_ReportLineItems] AS [rlbgm]
 INNER JOIN [RCS_DW].[TEMP_GLMonthlyBalanceActivity] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
-INNER JOIN [RCS_DW].[V_BOOKHIERARCHY_DIM] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[BookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
-INNER JOIN [RCS_DW].[SCENARIO_DIM] AS [sd1] ON [mbaf].[scenario_SK] = [sd1].[scenario_SK]
+INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
+INNER JOIN [RCS_DW].[Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK]
                                            AND [sd1].[IsCurrent] = 1
                                            AND [sd1].[Scenario_AK] IN ('January_Scenario', 'February_Scenario', 'March_Scenario', 'April_Scenario'
                                                                      , 'May_Scenario', 'June_Scenario', 'July_Scenario', 'August_Scenario'
                                                                      , 'September_Scenario', 'October_Scenario', 'November_Scenario', 'December_Scenario')
-INNER JOIN [RCS_DW].[COMPANY_DIM] AS [cd] ON [mbaf].[company_SK] = [cd].[company_SK] AND [cd].[isCurrent] = 1 AND [cd].[CompanyStatus] = 'Active'
-INNER JOIN [HOSPITALITY_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyId_AK] = [pd].[PropertyId_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
-INNER JOIN [RCS_DW].[COST_CENTER_DIM] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
-LEFT OUTER JOIN [RCS_DW].[OUTLET_DIM] AS [od] ON [cd].[company_sk] = [od].[company_sk]
-                                             AND [ccd].[costcenter_sk] = [od].[costcenter_sk]
+INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1 AND [cd].[CompanyStatus] = 'Active'
+INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
+INNER JOIN [RCS_DW].[Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
+LEFT OUTER JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK]
+                                             AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK]
                                              AND [od].[IsCurrent] = 1
-GROUP BY [pd].[PropertyId_AK]
+GROUP BY [pd].[PropertyID_AK]
        , [pd].[PropertyName]
        , [ccd].[CostCenterDesc]
        , [od].[OutletName]
@@ -187,25 +214,25 @@ DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Test]
 ;
 
 WITH [YearMonth_Dim]
-AS ( SELECT DISTINCT [Year], [YearMonth], [Month] FROM [HOSPITALITY_DW].[DATE_DIM] WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE()))
+AS ( SELECT DISTINCT [Year], [YearMonth], [Month] FROM [hospitality_DW].[DATE_DIM] WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE()))
 SELECT *
 INTO [RCS_DW].[Asset_Review_Test]
 FROM( SELECT
-          [PropertyId_AK]
-        , [PropertyName]
+          [acte1].[PropertyId_AK]
+        , [acte1].[PropertyName]
         , [acte1].[CostCenterDesc]
-        , [OutletName]
+        , [acte1].[OutletName]
         , [acte1].[AsOfDate]
         , 'MTD' AS [TimeSeries]
         , 'Actual_Forecast' AS [Type]
         , 'Actual' AS [Scenario]
-        , [FiscalYear]
-        , [FiscalMonth]
-        , [ReportLineId]
-        , [ReportLineGroupId]
-        , [ReportLineItem]
-        , [LedgerAccountName]
-        , [CategoryDesc]
+        , [acte1].[FiscalYear]
+        , [acte1].[FiscalMonth]
+        , [acte1].[ReportLineId]
+        , [acte1].[ReportLineGroupId]
+        , [acte1].[ReportLineItem]
+        , [acte1].[LedgerAccountName]
+        , [acte1].[CategoryDesc]
         , [acte1].[PeriodAmount]
       FROM [RCS_DW].[Asset_Review_Actuals] AS [acte1]
       UNION ALL
@@ -227,24 +254,24 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[Fiscalyear] AND [ymd].[Month] >= [acte].[FiscalMonth]
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
       UNION ALL
       SELECT
-          [PropertyId_AK]
-        , [PropertyName]
+          [bcte1].[PropertyId_AK]
+        , [bcte1].[PropertyName]
         , [bcte1].[CostCenterDesc]
         , [bcte1].[OutletName]
         , [bcte1].[AsOfDate]
         , 'MTD' AS [TimeSeries]
         , 'Budget' AS [Type]
         , 'Budget' AS [Scenario]
-        , [FiscalYear]
-        , [FiscalMonth]
-        , [ReportLineId]
-        , [ReportLineGroupId]
-        , [ReportLineItem]
-        , [LedgerAccountName]
-        , [CategoryDesc]
+        , [bcte1].[FiscalYear]
+        , [bcte1].[FiscalMonth]
+        , [bcte1].[ReportLineId]
+        , [bcte1].[ReportLineGroupId]
+        , [bcte1].[ReportLineItem]
+        , [bcte1].[LedgerAccountName]
+        , [bcte1].[CategoryDesc]
         , [bcte1].[PeriodAmount]
       FROM [RCS_DW].[Asset_Review_Budget] AS [bcte1]
       UNION ALL
@@ -266,7 +293,7 @@ FROM( SELECT
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[Fiscalyear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
+      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
       UNION ALL
       SELECT
           [bcte].[PropertyId_AK]
@@ -286,7 +313,7 @@ FROM( SELECT
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[Fiscalyear] AND [ymd].[Month] < [bcte].[FiscalMonth]
+      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] < [bcte].[FiscalMonth]
       UNION ALL
       SELECT
           [bcte].[PropertyId_AK]
@@ -306,7 +333,7 @@ FROM( SELECT
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[Fiscalyear]
+      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
       UNION ALL
       SELECT
           [bcte].[PropertyId_AK]
@@ -326,7 +353,7 @@ FROM( SELECT
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[Fiscalyear]
+      JOIN [RCS_DW].[Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
                                                   AND [ymd].[Month] = [bcte].[Scenario_Rank]
                                                   AND [ymd].[Month] < [bcte].[FiscalMonth]
       UNION ALL
@@ -348,7 +375,7 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[Fiscalyear] AND [ymd].[Month] >= [acte].[FiscalMonth]
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
       UNION ALL
       SELECT
           [bcte].[PropertyId_AK]
@@ -368,7 +395,7 @@ FROM( SELECT
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[Fiscalyear]
+      JOIN [RCS_DW].[Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
                                                   AND [ymd].[Month] = [bcte].[Scenario_Rank]
                                                   AND [ymd].[Month] < [bcte].[FiscalMonth]
 
@@ -392,7 +419,7 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[Fiscalyear] -- last year's data
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
                                                     AND [ymd].[Month] = [acte].[FiscalMonth]
       UNION ALL
       SELECT
@@ -413,7 +440,7 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[Fiscalyear] -- last year's data
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
       UNION ALL
       SELECT
           [acte].[PropertyId_AK]
@@ -433,7 +460,7 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[Fiscalyear] -- last year's data
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
       UNION ALL
       SELECT
           [acte].[PropertyId_AK]
@@ -453,7 +480,7 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[Fiscalyear] -- Two Years Ago data
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
                                                     AND [ymd].[Month] = [acte].[FiscalMonth]
       UNION ALL
       SELECT
@@ -474,7 +501,7 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[Fiscalyear] -- Two Years Ago data
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
       UNION ALL
       SELECT
           [acte].[PropertyId_AK]
@@ -494,6 +521,6 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[Fiscalyear] -- Two Years Ago data
+      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
 ) AS [x] ;
 GO
