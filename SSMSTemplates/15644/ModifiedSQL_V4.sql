@@ -11,8 +11,8 @@ IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
     DROP TABLE [RCS_DW].[Asset_Review_RPT_Old] ;
 
-IF OBJECT_ID('[tempdb]..[#REPORTLINECALCGROUPMAPPING]') IS NOT NULL
-    DROP TABLE [#REPORTLINECALCGROUPMAPPING] ;
+IF OBJECT_ID('[tempdb]..[#ReportlineCalcGroupMapping]') IS NOT NULL
+    DROP TABLE [#ReportlineCalcGroupMapping] ;
 
 IF OBJECT_ID('[tempdb]..[#BookHierarchy_Dim]') IS NOT NULL
     DROP TABLE [#BookHierarchy_Dim] ;
@@ -41,15 +41,15 @@ IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
 SET @Getdate = GETDATE() ;
 
 SELECT *
-INTO [#REPORTLINECALCGROUPMAPPING]
+INTO [#ReportlineCalcGroupMapping]
 FROM [RCS_DW].[v_ReportLineCalcGroupMapping]
 WHERE 1 = 0
-OPTION(LABEL = 'Stored_Proc_Name BUILD [#REPORTLINECALCGROUPMAPPING] XXXXXXXXXXXXXXXXXXXXXXXXXX') ;
+OPTION(LABEL = 'Stored_Proc_Name BUILD [#ReportlineCalcGroupMapping] XXXXXXXXXXXXXXXXXXXXXXXXXX') ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT(
-                  'Build [#REPORTLINECALCGROUPMAPPING], DurationSec: '
+                  'Build [#ReportlineCalcGroupMapping], DurationSec: '
                   , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
@@ -108,7 +108,7 @@ SELECT
   , [rlcg].[LedgerAccountName]
   , [rlcg].[CategoryDesc]
 INTO [#ReportLineItems]
-FROM [#REPORTLINECALCGROUPMAPPING] AS [rlcg]
+FROM [#ReportlineCalcGroupMapping] AS [rlcg]
 INNER JOIN [RCS_DW].[ReportLineItem] AS [rli] ON [rlcg].[ReportLineItem] = [rli].[ReportLineItem]
 WHERE 1 = 0
 OPTION(LABEL = 'Stored_Proc_Name BUILD [#ReportLineItems] XXXXXXXXXXXXXXXXXXXXXXXXXX') ;
@@ -677,10 +677,10 @@ IF @Debug = 1
         SET @Getdate = GETDATE() ;
     END ;
 
-IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping]') IS NOT NULL
-	RENAME OBJECT [RCS_DW].[ReportLineCalcGroupMapping] TO [ReportLineCalcGroupMapping_Old];
+IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT]') IS NOT NULL
+	RENAME OBJECT [RCS_DW].[Asset_Review_RPT] TO [Asset_Review_RPT_Old];
 
-RENAME OBJECT [RCS_DW].[ReportLineCalcGroupMapping_New] TO [ReportLineCalcGroupMapping];
+RENAME OBJECT [RCS_DW].[Asset_Review_RPT_New] TO [Asset_Review_RPT];
 
-IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping_Old]') IS NOT NULL
-	DROP TABLE [RCS_DW].[ReportLineCalcGroupMapping_Old]
+IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
+	DROP TABLE [RCS_DW].[Asset_Review_RPT_Old]
