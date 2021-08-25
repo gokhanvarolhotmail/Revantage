@@ -207,14 +207,15 @@ GROUP BY [pd].[PropertyID_AK]
        , [sd1].[Scenario_AK] ;
 
 -------------------------------------
+
+IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL  DROP TABLE [#YearMonth_Dim]
+SELECT DISTINCT [Year], [YearMonth], [Month] INTO [#YearMonth_Dim] FROM [hospitality_DW].[DATE_DIM] WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE())
+
 DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Test]
 --CREATE TABLE RCS_DW.Asset_Review_Test
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
-;
 
-WITH [YearMonth_Dim]
-AS ( SELECT DISTINCT [Year], [YearMonth], [Month] FROM [hospitality_DW].[DATE_DIM] WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE()))
 SELECT *
 INTO [RCS_DW].[Asset_Review_Test]
 FROM( SELECT
@@ -253,7 +254,7 @@ FROM( SELECT
         , [acte].[LedgerAccountName]
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
       CROSS JOIN( SELECT
                       'YTD' AS [TimeSeries]
@@ -301,7 +302,7 @@ FROM( SELECT
         , [bcte].[LedgerAccountName]
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
       UNION ALL
       SELECT
@@ -321,7 +322,7 @@ FROM( SELECT
         , [bcte].[LedgerAccountName]
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] < [bcte].[FiscalMonth]
       UNION ALL
       SELECT
@@ -341,7 +342,7 @@ FROM( SELECT
         , [bcte].[LedgerAccountName]
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
       UNION ALL
       SELECT
@@ -361,7 +362,7 @@ FROM( SELECT
         , [bcte].[LedgerAccountName]
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
                                                         AND [ymd].[Month] = [bcte].[Scenario_Rank]
                                                         AND [ymd].[Month] < [bcte].[FiscalMonth]
@@ -386,7 +387,7 @@ FROM( SELECT
         , [acte].[LedgerAccountName]
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
       CROSS JOIN( SELECT 'FY' AS [TS] UNION ALL SELECT 'CALC' AS [TS] ) AS [ua]
       UNION ALL
@@ -407,7 +408,7 @@ FROM( SELECT
         , [acte].[LedgerAccountName]
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
                                                           AND [ymd].[Month] = [acte].[FiscalMonth]
       UNION ALL
@@ -428,7 +429,7 @@ FROM( SELECT
         , [acte].[LedgerAccountName]
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
                                                           AND [ymd].[Month] = [acte].[FiscalMonth]
       UNION ALL
@@ -449,7 +450,7 @@ FROM( SELECT
         , [acte].[LedgerAccountName]
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
       UNION ALL
       SELECT
@@ -469,7 +470,7 @@ FROM( SELECT
         , [acte].[LedgerAccountName]
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
-      FROM [YearMonth_Dim] AS [ymd]
+      FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
 ) AS [x] ;
 GO
