@@ -254,7 +254,7 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
+      INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
       UNION ALL
       SELECT
           [bcte1].[PropertyId_AK]
@@ -293,7 +293,7 @@ FROM( SELECT
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
+      INNER JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
       UNION ALL
       SELECT
           [bcte].[PropertyId_AK]
@@ -313,7 +313,7 @@ FROM( SELECT
         , [bcte].[CategoryDesc]
         , [bcte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] < [bcte].[FiscalMonth]
+      INNER JOIN [RCS_DW].[Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] < [bcte].[FiscalMonth]
       UNION ALL
       SELECT
           [bcte].[PropertyId_AK]
@@ -521,6 +521,6 @@ FROM( SELECT
         , [acte].[CategoryDesc]
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
-      JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
+      INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
 ) AS [x] ;
 GO
