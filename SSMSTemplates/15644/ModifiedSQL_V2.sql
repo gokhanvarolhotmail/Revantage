@@ -242,9 +242,9 @@ FROM( SELECT
         , [acte].[CostCenterDesc]
         , [acte].[OutletName]
         , [ymd].[YearMonth] AS [AsOfDate]
-        , ua.[TimeSeries]
-        , ua.[Type]
-        , ua.[Scenario]
+        , [ua].[TimeSeries]
+        , [ua].[Type]
+        , [ua].[Scenario]
         , [acte].[FiscalYear]
         , [acte].[FiscalMonth]
         , [acte].[ReportLineId]
@@ -255,11 +255,15 @@ FROM( SELECT
         , [acte].[PeriodAmount]
       FROM [YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] = [acte].[FiscalYear] AND [ymd].[Month] >= [acte].[FiscalMonth]
-	  CROSS JOIN (SELECT 'YTD' AS [TimeSeries], 'Actual_Forecast' AS [Type] , 'Actual' AS [Scenario]
-UNION ALL 
-SELECT  'FY' AS [TimeSeries], 'Actual_Forecast' AS [Type], 'Actual' AS [Scenario]) ua
-
-
+      CROSS JOIN( SELECT
+                      'YTD' AS [TimeSeries]
+                    , 'Actual_Forecast' AS [Type]
+                    , 'Actual' AS [Scenario]
+                  UNION ALL
+                  SELECT
+                      'FY' AS [TimeSeries]
+                    , 'Actual_Forecast' AS [Type]
+                    , 'Actual' AS [Scenario] ) AS [ua]
       UNION ALL
       SELECT
           [bcte1].[PropertyId_AK]
@@ -361,7 +365,6 @@ SELECT  'FY' AS [TimeSeries], 'Actual_Forecast' AS [Type], 'Actual' AS [Scenario
       INNER JOIN [RCS_DW].[Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
                                                         AND [ymd].[Month] = [bcte].[Scenario_Rank]
                                                         AND [ymd].[Month] < [bcte].[FiscalMonth]
-
       UNION ALL
       SELECT
           [bcte].[PropertyId_AK]
