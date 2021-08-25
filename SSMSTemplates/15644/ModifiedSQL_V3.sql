@@ -18,33 +18,45 @@ IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#REPORTLINECALCGROUPMAPPING]') IS NOT NULL
     DROP TABLE [#REPORTLINECALCGROUPMAPPING] ;
 
+IF OBJECT_ID('[tempdb]..[#BookHierarchy_Dim]') IS NOT NULL
+    DROP TABLE [#BookHierarchy_Dim] ;
+
+IF OBJECT_ID('[tempdb]..[#Scenario_Dim]') IS NOT NULL
+    DROP TABLE [#Scenario_Dim] ;
+
+IF OBJECT_ID('[tempdb]..[#GL_Monthly_Balance_Activity_Fact]') IS NOT NULL
+    DROP TABLE [#GL_Monthly_Balance_Activity_Fact] ;
+
+IF OBJECT_ID('[tempdb]..[#ReportLineItems]') IS NOT NULL
+    DROP TABLE [#ReportLineItems] ;
+
+IF OBJECT_ID('[tempdb]..[#Asset_Review_Actuals]') IS NOT NULL
+    DROP TABLE [#Asset_Review_Actuals] ;
+
+IF OBJECT_ID('[tempdb]..[#Asset_Review_Budget]') IS NOT NULL
+    DROP TABLE [#Asset_Review_Budget] ;
+
+IF OBJECT_ID('[tempdb]..[#Asset_Review_Blend]') IS NOT NULL
+    DROP TABLE [#Asset_Review_Blend] ;
+
+IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
+    DROP TABLE [#YearMonth_Dim] ;
+
 SELECT *
 INTO [#REPORTLINECALCGROUPMAPPING]
 FROM [RCS_DW].[v_ReportLineCalcGroupMapping] ;
-
-IF OBJECT_ID('[tempdb]..[#BookHierarchy_Dim]') IS NOT NULL
-    DROP TABLE [#BookHierarchy_Dim] ;
 
 SELECT *
 INTO [#BookHierarchy_Dim]
 FROM [RCS_DW].[v_BookHierarchy_Dim] ;
 
-IF OBJECT_ID('[tempdb]..[#Scenario_Dim]') IS NOT NULL
-    DROP TABLE [#Scenario_Dim] ;
-
 SELECT *
 INTO [#Scenario_Dim]
 FROM [RCS_DW].[v_Scenario_Dim] ;
 
-IF OBJECT_ID('[tempdb]..[#GL_Monthly_Balance_Activity_Fact]') IS NOT NULL
-    DROP TABLE [#GL_Monthly_Balance_Activity_Fact] ;
-
 SELECT *
 INTO [#GL_Monthly_Balance_Activity_Fact]
 FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact] ;
-
-IF OBJECT_ID('[tempdb]..[#ReportLineItems]') IS NOT NULL
-    DROP TABLE [#ReportLineItems] ;
 
 SELECT
     [rlcg].[ReportLineGroupId]
@@ -56,9 +68,6 @@ SELECT
 INTO [#ReportLineItems]
 FROM [#REPORTLINECALCGROUPMAPPING] AS [rlcg]
 INNER JOIN [RCS_DW].[ReportLineItem] AS [rli] ON [rlcg].[ReportLineItem] = [rli].[ReportLineItem] ;
-
-IF OBJECT_ID('[tempdb]..[#Asset_Review_Actuals]') IS NOT NULL
-    DROP TABLE [#Asset_Review_Actuals] ;
 
 --DROP TABLE RCS_DW.Asset_Review_Actuals 
 --CREATE TABLE RCS_DW.Asset_Review_Actuals
@@ -101,9 +110,6 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK] ;
 
-IF OBJECT_ID('[tempdb]..[#Asset_Review_Budget]') IS NOT NULL
-    DROP TABLE [#Asset_Review_Budget] ;
-
 --CREATE TABLE RCS_DW.Asset_Review_Budget
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
@@ -145,9 +151,6 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[LedgerAccountName]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK] ;
-
-IF OBJECT_ID('[tempdb]..[#Asset_Review_Blend]') IS NOT NULL
-    DROP TABLE [#Asset_Review_Blend] ;
 
 --CREATE TABLE RCS_DW.Asset_Review_Blend
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
@@ -210,9 +213,6 @@ GROUP BY [pd].[PropertyID_AK]
        , [sd1].[Scenario_AK] ;
 
 -------------------------------------
-IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
-    DROP TABLE [#YearMonth_Dim] ;
-
 SELECT DISTINCT
        [Year]
      , [YearMonth]
