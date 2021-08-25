@@ -5,6 +5,11 @@ GO
 --CREATE TABLE RCS_DW.TEMP_ReportLineItems
 --WITH (DISTRIBUTION=REPLICATE,HEAP )
 --AS
+SET NOCOUNT ON
+DECLARE
+    @Getdate  DATETIME2(7)
+  , @Debug    BIT         = 1
+  , @Rowcount BIGINT ;
 
 IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_New]') IS NOT NULL
     DROP TABLE [RCS_DW].[Asset_Review_RPT_New] ;
@@ -42,21 +47,67 @@ IF OBJECT_ID('[tempdb]..[#Asset_Review_Blend]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
     DROP TABLE [#YearMonth_Dim] ;
 
+SET @Getdate = GETDATE() ;
+
 SELECT *
 INTO [#REPORTLINECALCGROUPMAPPING]
 FROM [RCS_DW].[v_ReportLineCalcGroupMapping] ;
+
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#REPORTLINECALCGROUPMAPPING], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 SELECT *
 INTO [#BookHierarchy_Dim]
 FROM [RCS_DW].[v_BookHierarchy_Dim] ;
 
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#BookHierarchy_Dim], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
 SELECT *
 INTO [#Scenario_Dim]
 FROM [RCS_DW].[v_Scenario_Dim] ;
 
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#Scenario_Dim], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
 SELECT *
 INTO [#GL_Monthly_Balance_Activity_Fact]
 FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact] ;
+
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#GL_Monthly_Balance_Activity_Fact], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 SELECT
     [rlcg].[ReportLineGroupId]
@@ -68,6 +119,17 @@ SELECT
 INTO [#ReportLineItems]
 FROM [#REPORTLINECALCGROUPMAPPING] AS [rlcg]
 INNER JOIN [RCS_DW].[ReportLineItem] AS [rli] ON [rlcg].[ReportLineItem] = [rli].[ReportLineItem] ;
+
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#ReportLineItems], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 --DROP TABLE RCS_DW.Asset_Review_Actuals 
 --CREATE TABLE RCS_DW.Asset_Review_Actuals
@@ -110,6 +172,17 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK] ;
 
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#Asset_Review_Actuals], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
 --CREATE TABLE RCS_DW.Asset_Review_Budget
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
@@ -151,6 +224,17 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[LedgerAccountName]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK] ;
+
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#Asset_Review_Budget], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 --CREATE TABLE RCS_DW.Asset_Review_Blend
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
@@ -212,6 +296,17 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_AK] ;
 
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#Asset_Review_Blend], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
 -------------------------------------
 SELECT DISTINCT
        [Year]
@@ -220,6 +315,17 @@ SELECT DISTINCT
 INTO [#YearMonth_Dim]
 FROM [hospitality_DW].[DATE_DIM]
 WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE()) ;
+
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [#YearMonth_Dim], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 --CREATE TABLE RCS_DW.Asset_Review_Test
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
@@ -461,4 +567,15 @@ FROM( SELECT
       FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
       CROSS JOIN( SELECT 'CALC' AS [TS] UNION ALL SELECT 'FY' AS [TS] ) AS [ua] ) AS [x] ;
+
+SELECT @Rowcount = @@ROWCOUNT ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT(
+                  'Build [RCS_DW].[Asset_Review_RPT_New], Rows: ' , @Rowcount, ', DurationSec: '
+                  , CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 GO
