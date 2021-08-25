@@ -1,9 +1,3 @@
--- 15 mins
---DROP TABLE RCS_DW.TEMP_ReportLineItems
---CREATE TABLE RCS_DW.TEMP_ReportLineItems
---WITH (DISTRIBUTION=REPLICATE,HEAP )
---AS
-SET NOCOUNT ON
 DECLARE
     @Getdate  DATETIME2(7)
   , @Debug    BIT         = 1 ;
@@ -690,6 +684,3 @@ RENAME OBJECT [RCS_DW].[ReportLineCalcGroupMapping_New] TO [ReportLineCalcGroupM
 
 IF OBJECT_ID('[RCS_DW].[ReportLineCalcGroupMapping_Old]') IS NOT NULL
 	DROP TABLE [RCS_DW].[ReportLineCalcGroupMapping_Old]
-
-
-GO
