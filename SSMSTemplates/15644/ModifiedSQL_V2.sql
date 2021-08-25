@@ -207,15 +207,22 @@ GROUP BY [pd].[PropertyID_AK]
        , [sd1].[Scenario_AK] ;
 
 -------------------------------------
+IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
+    DROP TABLE [#YearMonth_Dim] ;
 
-IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL  DROP TABLE [#YearMonth_Dim]
-SELECT DISTINCT [Year], [YearMonth], [Month] INTO [#YearMonth_Dim] FROM [hospitality_DW].[DATE_DIM] WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE())
+SELECT DISTINCT
+       [Year]
+     , [YearMonth]
+     , [Month]
+INTO [#YearMonth_Dim]
+FROM [hospitality_DW].[DATE_DIM]
+WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE()) ;
 
-DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Test]
+DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Test] ;
+
 --CREATE TABLE RCS_DW.Asset_Review_Test
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
-
 SELECT *
 INTO [RCS_DW].[Asset_Review_Test]
 FROM( SELECT
@@ -439,7 +446,7 @@ FROM( SELECT
         , [acte].[CostCenterDesc]
         , [acte].[OutletName]
         , [ymd].[YearMonth] AS [AsOfDate]
-        , CASE WHEN [ymd].[Month] >= [acte].[FiscalMonth] THEN 'YTD' ELSE 'BOY' END AS [TimeSeries]
+        , CASE WHEN [ua].[TS] = 'CALC' THEN CASE WHEN [ymd].[Month] >= [acte].[FiscalMonth] THEN 'YTD' ELSE 'BOY' END WHEN [ua].[TS] = 'FY' THEN 'FY' END AS [TimeSeries]
         , CAST([acte].[FiscalYear] AS VARCHAR(15)) AS [Type]
         , 'Actual' AS [Scenario]
         , [acte].[FiscalYear]
@@ -452,25 +459,5 @@ FROM( SELECT
         , [acte].[PeriodAmount]
       FROM [#YearMonth_Dim] AS [ymd]
       INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
-      UNION ALL
-      SELECT
-          [acte].[PropertyId_AK]
-        , [acte].[PropertyName]
-        , [acte].[CostCenterDesc]
-        , [acte].[OutletName]
-        , [ymd].[YearMonth] AS [AsOfDate]
-        , 'FY' AS [TimeSeries]
-        , CAST([acte].[FiscalYear] AS VARCHAR(15)) AS [Type]
-        , 'Actual' AS [Scenario]
-        , [acte].[FiscalYear]
-        , [acte].[FiscalMonth]
-        , [acte].[ReportLineId]
-        , [acte].[ReportLineGroupId]
-        , [acte].[ReportLineItem]
-        , [acte].[LedgerAccountName]
-        , [acte].[CategoryDesc]
-        , [acte].[PeriodAmount]
-      FROM [#YearMonth_Dim] AS [ymd]
-      INNER JOIN [RCS_DW].[Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
-) AS [x] ;
+      CROSS JOIN( SELECT 'CALC' AS [TS] UNION ALL SELECT 'FY' AS [TS] ) AS [ua] ) AS [x] ;
 GO
