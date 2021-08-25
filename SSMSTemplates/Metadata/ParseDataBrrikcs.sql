@@ -2,7 +2,7 @@ USE [Revantage] ;
 GO
 DECLARE @SQL VARCHAR(MAX) ;
 
-SELECT @SQL = [Util].[FS].[ReadAllTextFromFile]('c:\temp\ALL_DDL.txt') ;
+SELECT @SQL = [Util].[FS].[ReadAllTextFromFile]('C:\Temp\ALL_DDL.txt') ;
 
 SET @SQL = REPLACE(@SQL, CHAR(13) + CHAR(10), CHAR(10)) ;
 
