@@ -13,9 +13,6 @@ IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
     DROP TABLE [RCS_DW].[Asset_Review_RPT_Old] ;
 
-IF OBJECT_ID('[tempdb]..[#ReportlineCalcGroupMapping]') IS NOT NULL
-    DROP TABLE [#ReportlineCalcGroupMapping] ;
-
 IF OBJECT_ID('[tempdb]..[#BookHierarchy_Dim]') IS NOT NULL
     DROP TABLE [#BookHierarchy_Dim] ;
 
@@ -71,7 +68,7 @@ WHERE [IsCurrent] = 1
   AND [Scenario_AK] IN ('January_Scenario', 'February_Scenario', 'March_Scenario', 'April_Scenario', 'May_Scenario', 'June_Scenario', 'July_Scenario'
                       , 'August_Scenario', 'September_Scenario', 'October_Scenario', 'November_Scenario', 'December_Scenario')
   AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#t_Scenario_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#t_Scenario_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -88,7 +85,7 @@ SELECT
 INTO [#PROPERTY_DIM]
 FROM [hospitality_DW].[PROPERTY_DIM]
 WHERE [IsCurrent] = 1 AND [PropertyStatus] = 'Active' AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#PROPERTY_DIM] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#PROPERTY_DIM] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -105,7 +102,7 @@ SELECT
 INTO [#Outlet_Dim]
 FROM [RCS_DW].[Outlet_Dim]
 WHERE [IsCurrent] = 1 AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#Outlet_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#Outlet_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -122,7 +119,7 @@ SELECT
 INTO [#Company_Dim]
 FROM [RCS_DW].[Company_Dim]
 WHERE [IsCurrent] = 1 AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#Company_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#Company_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -138,7 +135,7 @@ SELECT
 INTO [#Cost_Center_Dim]
 FROM [RCS_DW].[Cost_Center_Dim]
 WHERE [IsCurrent] = 1 AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#Cost_Center_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#Cost_Center_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -154,30 +151,11 @@ SELECT
 INTO [#Currency_Dim]
 FROM [RCS_DW].[Currency_Dim]( NOLOCK )
 WHERE [IsCurrent] = 1 AND [Currency_AK] = 'USD' AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#Currency_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#Currency_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
         PRINT CONCAT('Build [#Currency_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
-
-        SET @Getdate = GETDATE() ;
-    END ;
-
-SELECT
-    [ReportLineGroupId]
-  , [CostCenter_SK]
-  , [ReportLineId]
-  , [LedgerAccountName]
-  , [CategoryDesc]
-  , [ReportLineItem]
-INTO [#ReportlineCalcGroupMapping]
-FROM [RCS_DW].[v_ReportLineCalcGroupMapping]
-WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#ReportlineCalcGroupMapping] 6FC663DDA2C74BCE834911B86B58213B' ) ;
-
-IF @Debug = 1
-    BEGIN
-        PRINT CONCAT('Build [#ReportlineCalcGroupMapping], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
@@ -188,7 +166,7 @@ SELECT
 INTO [#BookHierarchy_Dim]
 FROM [RCS_DW].[v_BookHierarchy_Dim]
 WHERE [BookCodeParent] = 'AM Reporting' AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#BookHierarchy_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#BookHierarchy_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -204,7 +182,7 @@ SELECT
 INTO [#v_Scenario_Dim]
 FROM [RCS_DW].[v_Scenario_Dim]
 WHERE( [ScenarioDesc] = 'Actuals' OR [ScenarioDesc] = 'Budget' AND [Scenario_AK] = 'Approved' ) AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#v_Scenario_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#v_Scenario_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -235,7 +213,7 @@ SELECT
 INTO [#GL_Monthly_Balance_Activity_Fact]
 FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#GL_Monthly_Balance_Activity_Fact] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#GL_Monthly_Balance_Activity_Fact] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -252,10 +230,10 @@ SELECT
   , [rlcg].[LedgerAccountName]
   , [rlcg].[CategoryDesc]
 INTO [#ReportLineItems]
-FROM [#ReportlineCalcGroupMapping] AS [rlcg]
+FROM [RCS_DW].[ReportLineCalcGroupMapping] AS [rlcg]
 INNER JOIN [RCS_DW].[ReportLineItem] AS [rli] ON [rlcg].[ReportLineItem] = [rli].[ReportLineItem]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#ReportLineItems] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#ReportLineItems] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -301,7 +279,7 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[LedgerAccountName]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK]
-OPTION( LABEL='Stored_Proc_Name BUILD [#Asset_Review_Actuals] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#Asset_Review_Actuals] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -347,7 +325,7 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[LedgerAccountName]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_SK]
-OPTION( LABEL='Stored_Proc_Name BUILD [#Asset_Review_Budget] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#Asset_Review_Budget] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -411,7 +389,7 @@ GROUP BY [pd].[PropertyID_AK]
        , [rlbgm].[LedgerAccountName]
        , [rlbgm].[CategoryDesc]
        , [sd1].[Scenario_AK]
-OPTION( LABEL='Stored_Proc_Name BUILD [#Asset_Review_Blend] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#Asset_Review_Blend] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -427,7 +405,7 @@ SELECT DISTINCT
 INTO [#YearMonth_Dim]
 FROM [hospitality_DW].[DATE_DIM]
 WHERE [Year] BETWEEN YEAR(GETDATE()) - 4 AND YEAR(GETDATE()) AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#YearMonth_Dim] 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#YearMonth_Dim] 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -458,7 +436,7 @@ SELECT
   , CAST([acte1].[PeriodAmount] AS DECIMAL(38, 2)) AS [PeriodAmount]
 FROM [#Asset_Review_Actuals] AS [acte1]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 1 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 1 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -497,7 +475,7 @@ CROSS JOIN( SELECT
               , 'Actual_Forecast' AS [Type]
               , 'Actual' AS [Scenario] ) AS [ua]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 2 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 2 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -527,7 +505,7 @@ SELECT
   , [bcte1].[PeriodAmount]
 FROM [#Asset_Review_Budget] AS [bcte1]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 3 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 3 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -558,7 +536,7 @@ SELECT
 FROM [#YearMonth_Dim] AS [ymd]
 INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] >= [bcte].[FiscalMonth]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 4 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 4 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -589,7 +567,7 @@ SELECT
 FROM [#YearMonth_Dim] AS [ymd]
 INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear] AND [ymd].[Month] < [bcte].[FiscalMonth]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 5 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 5 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -620,7 +598,7 @@ SELECT
 FROM [#YearMonth_Dim] AS [ymd]
 INNER JOIN [#Asset_Review_Budget] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 6 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 6 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -654,7 +632,7 @@ INNER JOIN [#Asset_Review_Blend] AS [bcte] ON [ymd].[Year] = [bcte].[FiscalYear]
                                           AND [ymd].[Month] < [bcte].[FiscalMonth]
 CROSS JOIN( SELECT 'BOY' AS [TimeSeries], 'Actual_Forecast' AS [Type] UNION ALL SELECT 'FY' AS [TimeSeries], 'Actual_Forecast' AS [Type] ) AS [ua]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 7 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 7 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -686,7 +664,7 @@ FROM [#YearMonth_Dim] AS [ymd]
 INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
 CROSS JOIN( SELECT 'FY' AS [TS] UNION ALL SELECT 'CALC' AS [TS] ) AS [ua]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 8 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 8 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -718,7 +696,7 @@ FROM [#YearMonth_Dim] AS [ymd]
 INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 1 = [acte].[FiscalYear] -- last year's data
                                             AND [ymd].[Month] = [acte].[FiscalMonth]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 9 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 9 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -750,7 +728,7 @@ FROM [#YearMonth_Dim] AS [ymd]
 INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
                                             AND [ymd].[Month] = [acte].[FiscalMonth]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 10 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 10 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -782,7 +760,7 @@ FROM [#YearMonth_Dim] AS [ymd]
 INNER JOIN [#Asset_Review_Actuals] AS [acte] ON [ymd].[Year] - 2 = [acte].[FiscalYear] -- Two Years Ago data
 CROSS JOIN( SELECT 'CALC' AS [TS] UNION ALL SELECT 'FY' AS [TS] ) AS [ua]
 WHERE /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 11 6FC663DDA2C74BCE834911B86B58213B' ) ;
+OPTION( LABEL='Stored_Proc_Name Build [RCS_DW].[Asset_Review_RPT_New] Step 11 665A288540BB4EF494A191E11D242034' ) ;
 
 IF @Debug = 1
     BEGIN
@@ -799,7 +777,6 @@ RENAME OBJECT [RCS_DW].[Asset_Review_RPT_New] TO [Asset_Review_RPT];
 IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 	DROP TABLE [RCS_DW].[Asset_Review_RPT_Old]
 
-/*
 
 SELECT '[#t_Scenario_Dim]' as [TableName], Count(1) as [Rows]
 FROM [#t_Scenario_Dim]
@@ -819,8 +796,8 @@ UNION ALL
 SELECT '[#Currency_Dim]' as [TableName], Count(1) as [Rows]
 FROM [#Currency_Dim]
 UNION ALL
-SELECT '[#ReportlineCalcGroupMapping]' as [TableName], Count(1) as [Rows]
-FROM [#ReportlineCalcGroupMapping]
+SELECT '[RCS_DW].[ReportLineCalcGroupMapping]' as [TableName], Count(1) as [Rows]
+FROM [RCS_DW].[ReportLineCalcGroupMapping]
 UNION ALL
 SELECT '[#BookHierarchy_Dim]' as [TableName], Count(1) as [Rows]
 FROM [#BookHierarchy_Dim]
@@ -848,7 +825,7 @@ FROM [#YearMonth_Dim]
 UNION ALL
 SELECT '[RCS_DW].[Asset_Review_RPT]' as [TableName], Count(1) as [Rows]
 FROM [RCS_DW].[Asset_Review_RPT]
-*/
+
 /*
 SELECT
 	[TableName], [Rows]
@@ -859,7 +836,7 @@ FROM (VALUES
 ('[#Company_Dim]', 9344),
 ('[#Cost_Center_Dim]', 403),
 ('[#Currency_Dim]', 1),
-('[#ReportlineCalcGroupMapping]', 84654),
+('[RCS_DW].[ReportLineCalcGroupMapping]', 84654),
 ('[#BookHierarchy_Dim]', 5),
 ('[#v_Scenario_Dim]', 2),
 ('[#GL_Monthly_Balance_Activity_Fact]', 12180036),
