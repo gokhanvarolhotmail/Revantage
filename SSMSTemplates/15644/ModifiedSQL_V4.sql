@@ -47,7 +47,27 @@ IF OBJECT_ID('[tempdb]..[#Cost_Center_Dim]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#Company_Dim]') IS NOT NULL
     DROP TABLE [#Company_Dim] ;
 
+IF OBJECT_ID('[tempdb]..[#Outlet_Dim]') IS NOT NULL
+    DROP TABLE [#Outlet_Dim] ;
+
 SET @Getdate = GETDATE() ;
+
+SELECT
+    [Company_SK]
+  , [CostCenter_SK]
+  , [IsCurrent]
+  , [OutletName]
+INTO [#Outlet_Dim]
+FROM [RCS_DW].[Outlet_Dim]
+WHERE [IsCurrent] = 1 AND /*DEBUG*/ 1 = 1
+OPTION( LABEL='Stored_Proc_Name BUILD [#Outlet_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT('Build [#Outlet_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 SELECT
     [Company_SK]
@@ -222,7 +242,7 @@ INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
 INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
-LEFT JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
+LEFT JOIN [#Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
 WHERE /*DEBUG*/ 1 = 1
 GROUP BY [pd].[PropertyID_AK]
        , [pd].[PropertyName]
@@ -268,9 +288,7 @@ INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
 INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
-LEFT OUTER JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK]
-                                             AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK]
-                                             AND [od].[IsCurrent] = 1
+LEFT OUTER JOIN [#Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
 WHERE /*DEBUG*/ 1 = 1
 GROUP BY [pd].[PropertyID_AK]
        , [pd].[PropertyName]
@@ -334,9 +352,7 @@ INNER JOIN [RCS_DW].[Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Sce
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1 AND [cd].[CompanyStatus] = 'Active'
 INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
-LEFT OUTER JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK]
-                                             AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK]
-                                             AND [od].[IsCurrent] = 1
+LEFT OUTER JOIN [#Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
 WHERE /*DEBUG*/ 1 = 1
 GROUP BY [pd].[PropertyID_AK]
        , [pd].[PropertyName]
@@ -739,3 +755,4 @@ IF @Debug = 1
 
 --IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 --	DROP TABLE [RCS_DW].[Asset_Review_RPT_Old]
+
