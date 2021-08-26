@@ -90,7 +90,25 @@ IF @Debug = 1
         SET @Getdate = GETDATE() ;
     END ;
 
-SELECT *
+SELECT
+    [BankAccount_SK]
+  , [BookCode_SK]
+  , [Category_SK]
+  , [Company_SK]
+  , [CostCenter_SK]
+  , [Currency_SK]
+  , [DateKey]
+  , [FiscalMonth]
+  , [FiscalYear]
+  , [FixedAssetCategory_SK]
+  , [Glinfo_SK]
+  , [IntercompanyAffiliate_SK]
+  , [LedgerAccount_SK]
+  , [LedgerType_SK]
+  , [PeriodAmount]
+  , [PortfolioCompany_SK]
+  , [Scenario_SK]
+  , [ReportLineGroupId]
 INTO [#GL_Monthly_Balance_Activity_Fact]
 FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact]
 WHERE /*DEBUG*/ 1 = 1
