@@ -41,9 +41,46 @@ IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#Currency_Dim]') IS NOT NULL
     DROP TABLE [#Currency_Dim] ;
 
+IF OBJECT_ID('[tempdb]..[#Cost_Center_Dim]') IS NOT NULL
+    DROP TABLE [#Cost_Center_Dim] ;
+
+IF OBJECT_ID('[tempdb]..[#Company_Dim]') IS NOT NULL
+    DROP TABLE [#Company_Dim] ;
+
 SET @Getdate = GETDATE() ;
 
-DROP TABLE IF EXISTS [#Currency_Dim] ;
+SELECT
+    [Company_SK]
+  , [CompanyStatus]
+  , [IsCurrent]
+  , [PropertyID_AK]
+INTO [#Company_Dim]
+FROM [RCS_DW].[Company_Dim]
+WHERE [IsCurrent] = 1 AND /*DEBUG*/ 1 = 1
+OPTION( LABEL='Stored_Proc_Name BUILD [#Company_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT('Build [#Company_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
+
+SELECT
+    [CostCenter_SK]
+  , [CostCenterDesc]
+  , [IsCurrent]
+INTO [#Cost_Center_Dim]
+FROM [RCS_DW].[Cost_Center_Dim]
+WHERE [IsCurrent] = 1 AND /*DEBUG*/ 1 = 1
+OPTION( LABEL='Stored_Proc_Name BUILD [#Cost_Center_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT('Build [#Cost_Center_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 SELECT
     [Currency_AK]
@@ -182,9 +219,9 @@ INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineG
 INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Actuals'
-INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
+INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
 INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
-INNER JOIN [RCS_DW].[Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
+INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
 LEFT JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
 WHERE /*DEBUG*/ 1 = 1
 GROUP BY [pd].[PropertyID_AK]
@@ -228,9 +265,9 @@ INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineG
 INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Budget' AND [sd1].[Scenario_AK] = 'Approved'
-INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
+INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
 INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
-INNER JOIN [RCS_DW].[Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
+INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
 LEFT OUTER JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK]
                                              AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK]
                                              AND [od].[IsCurrent] = 1
@@ -294,9 +331,9 @@ INNER JOIN [RCS_DW].[Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Sce
                                            AND [sd1].[Scenario_AK] IN ('January_Scenario', 'February_Scenario', 'March_Scenario', 'April_Scenario'
                                                                      , 'May_Scenario', 'June_Scenario', 'July_Scenario', 'August_Scenario'
                                                                      , 'September_Scenario', 'October_Scenario', 'November_Scenario', 'December_Scenario')
-INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1 AND [cd].[CompanyStatus] = 'Active'
+INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1 AND [cd].[CompanyStatus] = 'Active'
 INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
-INNER JOIN [RCS_DW].[Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
+INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
 LEFT OUTER JOIN [RCS_DW].[Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK]
                                              AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK]
                                              AND [od].[IsCurrent] = 1
@@ -702,4 +739,3 @@ IF @Debug = 1
 
 --IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 --	DROP TABLE [RCS_DW].[Asset_Review_RPT_Old]
-
