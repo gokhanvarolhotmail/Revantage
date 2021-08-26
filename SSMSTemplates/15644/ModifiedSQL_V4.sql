@@ -17,8 +17,8 @@ IF OBJECT_ID('[tempdb]..[#ReportlineCalcGroupMapping]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#BookHierarchy_Dim]') IS NOT NULL
     DROP TABLE [#BookHierarchy_Dim] ;
 
-IF OBJECT_ID('[tempdb]..[#Scenario_Dim]') IS NOT NULL
-    DROP TABLE [#Scenario_Dim] ;
+IF OBJECT_ID('[tempdb]..[#v_Scenario_Dim]') IS NOT NULL
+    DROP TABLE [#v_Scenario_Dim] ;
 
 IF OBJECT_ID('[tempdb]..[#GL_Monthly_Balance_Activity_Fact]') IS NOT NULL
     DROP TABLE [#GL_Monthly_Balance_Activity_Fact] ;
@@ -53,7 +53,30 @@ IF OBJECT_ID('[tempdb]..[#Outlet_Dim]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#PROPERTY_DIM]') IS NOT NULL
     DROP TABLE [#PROPERTY_DIM] ;
 
+IF OBJECT_ID('[tempdb]..[#t_Scenario_Dim]') IS NOT NULL
+    DROP TABLE [#t_Scenario_Dim] ;
+
 SET @Getdate = GETDATE() ;
+
+SELECT
+    [IsCurrent]
+  , [Scenario_AK]
+  , [Scenario_SK]
+  , [ScenarioDesc]
+INTO [#t_Scenario_Dim]
+FROM [RCS_DW].[Scenario_Dim]
+WHERE [IsCurrent] = 1
+  AND [Scenario_AK] IN ('January_Scenario', 'February_Scenario', 'March_Scenario', 'April_Scenario', 'May_Scenario', 'June_Scenario', 'July_Scenario'
+                      , 'August_Scenario', 'September_Scenario', 'October_Scenario', 'November_Scenario', 'December_Scenario')
+  AND /*DEBUG*/ 1 = 1
+OPTION( LABEL='Stored_Proc_Name BUILD [#t_Scenario_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT('Build [#t_Scenario_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 SELECT
     [IsCurrent]
@@ -176,14 +199,14 @@ SELECT
     [Scenario_AK]
   , [Scenario_SK]
   , [ScenarioDesc]
-INTO [#Scenario_Dim]
+INTO [#v_Scenario_Dim]
 FROM [RCS_DW].[v_Scenario_Dim]
 WHERE( [ScenarioDesc] = 'Actuals' OR [ScenarioDesc] = 'Budget' AND [Scenario_AK] = 'Approved' ) AND /*DEBUG*/ 1 = 1
-OPTION( LABEL='Stored_Proc_Name BUILD [#Scenario_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
+OPTION( LABEL='Stored_Proc_Name BUILD [#v_Scenario_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
 
 IF @Debug = 1
     BEGIN
-        PRINT CONCAT('Build [#Scenario_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+        PRINT CONCAT('Build [#v_Scenario_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
 
         SET @Getdate = GETDATE() ;
     END ;
@@ -258,7 +281,7 @@ FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
-INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Actuals'
+INNER JOIN [#v_Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Actuals'
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
 INNER JOIN [#PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
@@ -304,7 +327,7 @@ FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
-INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Budget' AND [sd1].[Scenario_AK] = 'Approved'
+INNER JOIN [#v_Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Budget' AND [sd1].[Scenario_AK] = 'Approved'
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
 INNER JOIN [#PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
@@ -364,11 +387,11 @@ FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
 INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
-INNER JOIN [RCS_DW].[Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK]
-                                           AND [sd1].[IsCurrent] = 1
-                                           AND [sd1].[Scenario_AK] IN ('January_Scenario', 'February_Scenario', 'March_Scenario', 'April_Scenario'
-                                                                     , 'May_Scenario', 'June_Scenario', 'July_Scenario', 'August_Scenario'
-                                                                     , 'September_Scenario', 'October_Scenario', 'November_Scenario', 'December_Scenario')
+INNER JOIN [#t_Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK]
+                                     AND [sd1].[IsCurrent] = 1
+                                     AND [sd1].[Scenario_AK] IN ('January_Scenario', 'February_Scenario', 'March_Scenario', 'April_Scenario', 'May_Scenario'
+                                                               , 'June_Scenario', 'July_Scenario', 'August_Scenario', 'September_Scenario', 'October_Scenario'
+                                                               , 'November_Scenario', 'December_Scenario')
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1 AND [cd].[CompanyStatus] = 'Active'
 INNER JOIN [#PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
