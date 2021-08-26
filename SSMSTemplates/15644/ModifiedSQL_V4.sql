@@ -799,3 +799,53 @@ RENAME OBJECT [RCS_DW].[Asset_Review_RPT_New] TO [Asset_Review_RPT];
 IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 	DROP TABLE [RCS_DW].[Asset_Review_RPT_Old]
 
+/*
+
+SELECT '[#t_Scenario_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#t_Scenario_Dim]
+UNION ALL
+SELECT '[#PROPERTY_DIM]' as [TableName], Count(1) as [Rows]
+FROM [#PROPERTY_DIM]
+UNION ALL
+SELECT '[#Outlet_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#Outlet_Dim]
+UNION ALL
+SELECT '[#Company_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#Company_Dim]
+UNION ALL
+SELECT '[#Cost_Center_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#Cost_Center_Dim]
+UNION ALL
+SELECT '[#Currency_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#Currency_Dim]
+UNION ALL
+SELECT '[#ReportlineCalcGroupMapping]' as [TableName], Count(1) as [Rows]
+FROM [#ReportlineCalcGroupMapping]
+UNION ALL
+SELECT '[#BookHierarchy_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#BookHierarchy_Dim]
+UNION ALL
+SELECT '[#v_Scenario_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#v_Scenario_Dim]
+UNION ALL
+SELECT '[#GL_Monthly_Balance_Activity_Fact]' as [TableName], Count(1) as [Rows]
+FROM [#GL_Monthly_Balance_Activity_Fact]
+UNION ALL
+SELECT '[#ReportLineItems]' as [TableName], Count(1) as [Rows]
+FROM [#ReportLineItems]
+UNION ALL
+SELECT '[#Asset_Review_Actuals]' as [TableName], Count(1) as [Rows]
+FROM [#Asset_Review_Actuals]
+UNION ALL
+SELECT '[#Asset_Review_Budget]' as [TableName], Count(1) as [Rows]
+FROM [#Asset_Review_Budget]
+UNION ALL
+SELECT '[#Asset_Review_Blend]' as [TableName], Count(1) as [Rows]
+FROM [#Asset_Review_Blend]
+UNION ALL
+SELECT '[#YearMonth_Dim]' as [TableName], Count(1) as [Rows]
+FROM [#YearMonth_Dim]
+UNION ALL
+SELECT '[RCS_DW].[Asset_Review_RPT]' as [TableName], Count(1) as [Rows]
+FROM [RCS_DW].[Asset_Review_RPT]
+*/
