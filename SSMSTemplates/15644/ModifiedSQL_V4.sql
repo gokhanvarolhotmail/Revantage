@@ -74,10 +74,13 @@ IF @Debug = 1
         SET @Getdate = GETDATE() ;
     END ;
 
-SELECT *
+SELECT
+    [Scenario_AK]
+  , [Scenario_SK]
+  , [ScenarioDesc]
 INTO [#Scenario_Dim]
 FROM [RCS_DW].[v_Scenario_Dim]
-WHERE /*DEBUG*/ 1 = 1
+WHERE( [ScenarioDesc] = 'Actuals' OR [ScenarioDesc] = 'Budget' AND [Scenario_AK] = 'Approved' ) AND /*DEBUG*/ 1 = 1
 OPTION( LABEL='Stored_Proc_Name BUILD [#Scenario_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
 
 IF @Debug = 1
