@@ -849,3 +849,25 @@ UNION ALL
 SELECT '[RCS_DW].[Asset_Review_RPT]' as [TableName], Count(1) as [Rows]
 FROM [RCS_DW].[Asset_Review_RPT]
 */
+/*
+SELECT
+	[TableName], [Rows]
+FROM (VALUES
+('[#t_Scenario_Dim]', 12),
+('[#PROPERTY_DIM]', 131),
+('[#Outlet_Dim]', 16583),
+('[#Company_Dim]', 9344),
+('[#Cost_Center_Dim]', 403),
+('[#Currency_Dim]', 1),
+('[#ReportlineCalcGroupMapping]', 84654),
+('[#BookHierarchy_Dim]', 5),
+('[#v_Scenario_Dim]', 2),
+('[#GL_Monthly_Balance_Activity_Fact]', 12180036),
+('[#ReportLineItems]', 63569),
+('[#Asset_Review_Actuals]', 17426268),
+('[#Asset_Review_Budget]', 7145688),
+('[#Asset_Review_Blend]', 62358504),
+('[#YearMonth_Dim]', 60),
+('[RCS_DW].[Asset_Review_RPT]', 1075406776))
+vdata ([TableName], [Rows])
+*/
