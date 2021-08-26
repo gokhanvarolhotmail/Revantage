@@ -38,7 +38,28 @@ IF OBJECT_ID('[tempdb]..[#Asset_Review_Blend]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#YearMonth_Dim]') IS NOT NULL
     DROP TABLE [#YearMonth_Dim] ;
 
+IF OBJECT_ID('[tempdb]..[#Currency_Dim]') IS NOT NULL
+    DROP TABLE [#Currency_Dim] ;
+
 SET @Getdate = GETDATE() ;
+
+DROP TABLE IF EXISTS [#Currency_Dim] ;
+
+SELECT
+    [Currency_AK]
+  , [Currency_SK]
+  , [IsCurrent]
+INTO [#Currency_Dim]
+FROM [RCS_DW].[Currency_Dim]( NOLOCK )
+WHERE [IsCurrent] = 1 AND [Currency_AK] = 'USD' AND /*DEBUG*/ 1 = 1
+OPTION( LABEL='Stored_Proc_Name BUILD [#Currency_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT('Build [#Currency_Dim], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 SELECT
     [ReportLineGroupId]
@@ -158,7 +179,7 @@ SELECT
 INTO [#Asset_Review_Actuals]
 FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
-INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [IsCurrent] = 1
+INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Actuals'
 INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
@@ -204,7 +225,7 @@ SELECT
 INTO [#Asset_Review_Budget]
 FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
-INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
+INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Budget' AND [sd1].[Scenario_AK] = 'Approved'
 INNER JOIN [RCS_DW].[Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
@@ -266,7 +287,7 @@ SELECT
 INTO [#Asset_Review_Blend]
 FROM [#ReportLineItems] AS [rlbgm]
 INNER JOIN [#GL_Monthly_Balance_Activity_Fact] AS [mbaf] ON [rlbgm].[ReportLineGroupId] = [mbaf].[ReportLineGroupId]
-INNER JOIN [RCS_DW].[Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
+INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_SK] AND [curd].[Currency_AK] = 'USD' AND [curd].[IsCurrent] = 1
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 INNER JOIN [RCS_DW].[Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK]
                                            AND [sd1].[IsCurrent] = 1
@@ -681,3 +702,4 @@ IF @Debug = 1
 
 --IF OBJECT_ID('[RCS_DW].[Asset_Review_RPT_Old]') IS NOT NULL
 --	DROP TABLE [RCS_DW].[Asset_Review_RPT_Old]
+
