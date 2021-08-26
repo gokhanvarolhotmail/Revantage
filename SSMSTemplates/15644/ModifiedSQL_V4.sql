@@ -59,10 +59,12 @@ IF @Debug = 1
         SET @Getdate = GETDATE() ;
     END ;
 
-SELECT *
+SELECT
+    [bookCode_SK]
+  , [BookCodeParent]
 INTO [#BookHierarchy_Dim]
 FROM [RCS_DW].[v_BookHierarchy_Dim]
-WHERE /*DEBUG*/ 1 = 1
+WHERE [BookCodeParent] = 'AM Reporting' AND /*DEBUG*/ 1 = 1
 OPTION( LABEL='Stored_Proc_Name BUILD [#BookHierarchy_Dim] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
 
 IF @Debug = 1
