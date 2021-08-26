@@ -50,7 +50,27 @@ IF OBJECT_ID('[tempdb]..[#Company_Dim]') IS NOT NULL
 IF OBJECT_ID('[tempdb]..[#Outlet_Dim]') IS NOT NULL
     DROP TABLE [#Outlet_Dim] ;
 
+IF OBJECT_ID('[tempdb]..[#PROPERTY_DIM]') IS NOT NULL
+    DROP TABLE [#PROPERTY_DIM] ;
+
 SET @Getdate = GETDATE() ;
+
+SELECT
+    [IsCurrent]
+  , [PropertyID_AK]
+  , [PropertyName]
+  , [PropertyStatus]
+INTO [#PROPERTY_DIM]
+FROM [hospitality_DW].[PROPERTY_DIM]
+WHERE [IsCurrent] = 1 AND [PropertyStatus] = 'Active' AND /*DEBUG*/ 1 = 1
+OPTION( LABEL='Stored_Proc_Name BUILD [#PROPERTY_DIM] XXXXXXXXXXXXXXXXXXXXXXXXXX' ) ;
+
+IF @Debug = 1
+    BEGIN
+        PRINT CONCAT('Build [#PROPERTY_DIM], DurationSec: ', CAST(DATEDIFF(MILLISECOND, @Getdate, GETDATE()) / 1000.0 AS NUMERIC(20, 3))) ;
+
+        SET @Getdate = GETDATE() ;
+    END ;
 
 SELECT
     [Company_SK]
@@ -240,7 +260,7 @@ INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Actuals'
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
-INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
+INNER JOIN [#PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
 LEFT JOIN [#Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
 WHERE /*DEBUG*/ 1 = 1
@@ -286,7 +306,7 @@ INNER JOIN [#Currency_Dim] AS [curd] ON [mbaf].[Currency_SK] = [curd].[Currency_
 INNER JOIN [#BookHierarchy_Dim] AS [bhd] ON [mbaf].[BookCode_SK] = [bhd].[bookCode_SK] AND [bhd].[BookCodeParent] = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 INNER JOIN [#Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Scenario_SK] AND [sd1].[ScenarioDesc] = 'Budget' AND [sd1].[Scenario_AK] = 'Approved'
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1
-INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
+INNER JOIN [#PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
 LEFT OUTER JOIN [#Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
 WHERE /*DEBUG*/ 1 = 1
@@ -350,7 +370,7 @@ INNER JOIN [RCS_DW].[Scenario_Dim] AS [sd1] ON [mbaf].[Scenario_SK] = [sd1].[Sce
                                                                      , 'May_Scenario', 'June_Scenario', 'July_Scenario', 'August_Scenario'
                                                                      , 'September_Scenario', 'October_Scenario', 'November_Scenario', 'December_Scenario')
 INNER JOIN [#Company_Dim] AS [cd] ON [mbaf].[Company_SK] = [cd].[Company_SK] AND [cd].[IsCurrent] = 1 AND [cd].[CompanyStatus] = 'Active'
-INNER JOIN [hospitality_DW].[PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
+INNER JOIN [#PROPERTY_DIM] AS [pd] ON [cd].[PropertyID_AK] = [pd].[PropertyID_AK] AND [pd].[IsCurrent] = 1 AND [pd].[PropertyStatus] = 'Active' -- only care about active properties
 INNER JOIN [#Cost_Center_Dim] AS [ccd] ON [rlbgm].[CostCenter_SK] = [ccd].[CostCenter_SK] AND [ccd].[IsCurrent] = 1
 LEFT OUTER JOIN [#Outlet_Dim] AS [od] ON [cd].[Company_SK] = [od].[Company_SK] AND [ccd].[CostCenter_SK] = [od].[CostCenter_SK] AND [od].[IsCurrent] = 1
 WHERE /*DEBUG*/ 1 = 1
