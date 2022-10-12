@@ -9,7 +9,7 @@ BEGIN
 	DECLARE @ErrorMessage [VARCHAR](MAX) = ERROR_MESSAGE()
 	DECLARE @ErrorSeverity [INT] = ERROR_SEVERITY()
 	DECLARE @ErrorState [INT] = ERROR_STATE()
-	
+
 	PRINT('-- Building First Temp Table')
 
 	IF OBJECT_ID('tempdb..#temp_rcs_dw_pivot') IS NOT NULL
@@ -21,11 +21,11 @@ BEGIN
 
 	WITH
 	(
-		DISTRIBUTION = ROUND_ROBIN 
+		DISTRIBUTION = ROUND_ROBIN
 	,HEAP
 	)
-	AS 
-	SELECT 
+	AS
+	SELECT
 			PropertyId_AK
 			,PropertyName
 			,FiscalYear
@@ -85,9 +85,9 @@ BEGIN
 				ON mbaf.scenario_SK = sd1.scenario_SK
 				AND sd1.ScenarioDesc = 'Actuals'
 			) rcs_dw
-			PIVOT  
-			(  
-			SUM(PeriodAmount)  
+			PIVOT
+			(
+			SUM(PeriodAmount)
 			FOR ReportLineItem IN(
 					[Full Rooms Inventory]
 					,[Total Rooms Sold]
@@ -98,7 +98,7 @@ BEGIN
 					,[Permanent Rooms Sold]
 					,[Other Rooms Sold]
 					,[Total Occupied Rooms]
-				) 
+				)
 			) AS ReportLinePivot
 
 	--------------------------------
@@ -116,7 +116,7 @@ BEGIN
 
 	WITH
 	(
-		DISTRIBUTION = ROUND_ROBIN 
+		DISTRIBUTION = ROUND_ROBIN
 	,HEAP
 	)
 	AS
@@ -124,7 +124,7 @@ BEGIN
 		t1.PropertyId_AK
 		,t1.PropertyName
 		,t1.Fiscalyear
-		,t1.FiscalMonth		
+		,t1.FiscalMonth
 		,t1.WorkdayAvailableRooms
 		,t1.WorkdayOccupiedRooms
 		,t1.WorkdayRoomRevenue
@@ -140,14 +140,14 @@ BEGIN
 		,SUM(t2.WorkdayRoomRevenue) AS L3M_WorkdayRoomRevenue
 	FROM #temp_rcs_dw_pivot t1
 	-- joining pivotted table on itself to pull the last	three month values for each period
-	JOIN #temp_rcs_dw_pivot t2 
+	JOIN #temp_rcs_dw_pivot t2
 		ON t1.PropertyId_AK = t2.PropertyId_AK
 		AND t2.YearMonthRank BETWEEN t1.YearMonthRank AND t1.YearMonthRank + 2
-	GROUP BY 
+	GROUP BY
 		t1.PropertyId_AK
 		,t1.PropertyName
 		,t1.Fiscalyear
-		,t1.FiscalMonth		
+		,t1.FiscalMonth
 		,t1.WorkdayAvailableRooms
 		,t1.WorkdayOccupiedRooms
 		,t1.WorkdayRoomRevenue
@@ -165,7 +165,7 @@ BEGIN
 
 	BEGIN TRY
 
-		BEGIN TRANSACTION;  
+		BEGIN TRANSACTION;
 
 			PRINT('=== TRUNCATE BREIT_RPT table')
 			DELETE FROM [hospitality_DW].[BREIT_RPT];
@@ -267,7 +267,7 @@ BEGIN
 				,[AcquisitionDate]
 				,[DateOpened]
 			)
-			SELECT 
+			SELECT
 				pd.PropertyName
 				,pd.PropertyId_AK
 				,pd.STRID
@@ -333,7 +333,7 @@ BEGIN
 				,al3mf.[CompSetRoomsSold] AS STR_L3M_Monthly_CompSetRoomsSold
 				,al3mf.[CompSetTotalRoomRevenue] AS STR_L3M_Monthly_CompSetRoomRevenue
 				,al3mf.[DataPropertyOccupancy] / 100 AS STR_L3M_Monthly_Occupancy
-				,al3mf.[CompSetOccupancyIndex] / 100 AS STR_L3M_Monthly_Occupancy_Index 
+				,al3mf.[CompSetOccupancyIndex] / 100 AS STR_L3M_Monthly_Occupancy_Index
 				,al3mf.[DataPropertyAverageDailyRate] AS STR_L3M_Monthly_ADR
 				,al3mf.[CompSetAverageDailyRateIndex] / 100 AS STR_L3M_Monthly_ADR_Index
 				,al3mf.[DataPropertyRevenuePerAvailableRoom] AS STR_L3M_Monthly_RevPAR
@@ -380,16 +380,16 @@ BEGIN
 			JOIN [hospitality_DW].[ANALYTICS_LAST_3_MONTHS_FACT] al3mf
 				ON hd.hotelkey = al3mf.hotelkey
 				AND amf.DataPeriod = al3mf.DataPeriod
-				AND al3mf.CompSetNumber = 1 -- only looking at first compset	
+				AND al3mf.CompSetNumber = 1 -- only looking at first compset
 			JOIN [hospitality_DW].[v_Date_YearMonth_Dim] ymd
 				ON amf.DataPeriod = ymd.YearMonth
 			JOIN #temp_rcs_dw rcs_dw
 				ON pd.PropertyId_AK = rcs_dw.PropertyId_AK
 				AND ymd.Year = rcs_dw.FiscalYear
 				AND ymd.Month = rcs_dw.FiscalMonth
-	
+
 			OPTION(LABEL='CTAS:BREIT_RPT_Load');
-			
+
 		COMMIT TRANSACTION;
 
 	END TRY

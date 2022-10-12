@@ -1,21 +1,21 @@
 CREATE VIEW [RCS_DW].[v_Cost_Center_Dim]
-AS SELECT  
+AS SELECT
       [CostCenter_SK]
       ,[CostCenter_AK]
       ,[CostCenterDesc]
-  FROM 
+  FROM
          [RCS_DW].[Cost_Center_Dim]
   WHERE isCurrent = 1;
 GO
 
 CREATE VIEW [RCS_DW].[v_Ledger_Account_Dim]
-AS SELECT  
+AS SELECT
       [LedgerAccount_SK]
       ,[LedgerAccount_AK]
       ,[LedgerAccountID]
       ,[LedgerAccountName]
       ,[LedgerAccountSet]
-  FROM 
+  FROM
          [RCS_DW].[Ledger_Account_Dim]
   WHERE isCurrent = 1;
 GO
@@ -62,21 +62,21 @@ CREATE VIEW [RCS_DW].[v_ReportLineMapping] AS SELECT [CategoryType]
 GO
 CREATE VIEW [RCS_DW].[v_ReportLineGroupMapping]
 AS SELECT DISTINCT
-      fact.[CostCenter_SK], 
+      fact.[CostCenter_SK],
 	  cc.[CostCenterDesc],
-      fact.[LedgerAccount_SK], 
+      fact.[LedgerAccount_SK],
 	  la.[LedgerAccountName],
-	  fact.[Category_SK], 
+	  fact.[Category_SK],
 	  cat.[CategoryDesc],
       [ReportLineGroupId]
   FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact] fact
-  INNER JOIN 
+  INNER JOIN
 [RCS_DW].[v_Cost_Center_Dim] cc
-ON cc.CostCenter_SK = fact.CostCenter_SK 
-INNER JOIN 
+ON cc.CostCenter_SK = fact.CostCenter_SK
+INNER JOIN
 [RCS_DW].[v_Ledger_Account_Dim] la
 ON la.[LedgerAccount_SK] = fact.[LedgerAccount_SK]
-INNER JOIN 
+INNER JOIN
 [RCS_DW].[v_Category_Dim] cat
 ON cat.[Category_SK] = fact.[Category_SK];
 GO

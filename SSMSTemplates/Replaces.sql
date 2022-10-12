@@ -38,7 +38,7 @@ DECLARE @Input NVARCHAR(MAX) = [Util].[FS].[ReadAllTextFromFile]('C:\Temp\ARMTem
 SELECT * FROM [Util].[FS].AppendAllTextToFile('C:\Temp\ARMTemplateForFactoryDEV.json', @Input, 1) ;
 DECLARE @Replaced NVARCHAR(MAX) =@Input;
 
---SELECT @Replaced = [dbo].[ReplaceValues]('Template', @Input) 
+--SELECT @Replaced = [dbo].[ReplaceValues]('Template', @Input)
 --OPTION (USE HINT('DISABLE_TSQL_SCALAR_UDF_INLINING'));
 
 

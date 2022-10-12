@@ -103,5 +103,3 @@ WITH
 	HEAP
 )
 GO
-
-

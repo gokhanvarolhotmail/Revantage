@@ -454,7 +454,7 @@ FROM( SELECT
                                                 AND [ymd].[Month] < [bcte].[FiscalMonth]
       CROSS JOIN( SELECT 'BOY' AS [TimeSeries], 'Actual_Forecast' AS [Type] UNION ALL SELECT 'FY' AS [TimeSeries], 'Actual_Forecast' AS [Type] ) AS [ua]
 
-      -- start of the last year / two year ago 
+      -- start of the last year / two year ago
       UNION ALL
       SELECT
           [acte].[PropertyID_AK]

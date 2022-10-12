@@ -131,7 +131,7 @@ IF @Debug = 1
         SET @Getdate = GETDATE() ;
     END ;
 
---DROP TABLE RCS_DW.Asset_Review_Actuals 
+--DROP TABLE RCS_DW.Asset_Review_Actuals
 --CREATE TABLE RCS_DW.Asset_Review_Actuals
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
@@ -482,7 +482,7 @@ FROM( SELECT
                                                 AND [ymd].[Month] < [bcte].[FiscalMonth]
       CROSS JOIN( SELECT 'BOY' AS [TimeSeries], 'Actual_Forecast' AS [Type] UNION ALL SELECT 'FY' AS [TimeSeries], 'Actual_Forecast' AS [Type] ) AS [ua]
 
-      -- start of the last year / two year ago 
+      -- start of the last year / two year ago
       UNION ALL
       SELECT
           [acte].[PropertyID_AK]

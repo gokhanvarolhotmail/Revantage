@@ -21,7 +21,7 @@ AS
 SELECT * FROM [RCS_DW].[v_GL_Monthly_Balance_Activity_Fact]
 
 --
-DROP TABLE RCS_DW.Asset_Review_Actuals 
+DROP TABLE RCS_DW.Asset_Review_Actuals
 CREATE TABLE RCS_DW.Asset_Review_Actuals
 WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 AS
@@ -43,10 +43,10 @@ SELECT
     ,rlbgm.CategoryDesc
     ,SUM(PeriodAmount) AS PeriodAmount
 FROM RCS_DW.TEMP_ReportLineItems rlbgm
-	INNER JOIN RCS_DW.TEMP_GLMonthlyBalanceActivity mbaf    ON rlbgm.ReportLineGroupId = mbaf.ReportLineGroupId    
+	INNER JOIN RCS_DW.TEMP_GLMonthlyBalanceActivity mbaf    ON rlbgm.ReportLineGroupId = mbaf.ReportLineGroupId
 	INNER JOIN RCS_DW.Currency_Dim curd ON mbaf.Currency_SK = curd.Currency_SK AND curd.Currency_AK = 'USD' AND IsCurrent=1
 	INNER JOIN RCS_DW.V_BOOKHIERARCHY_DIM	bhd ON mbaf.BookCode_SK = bhd.BookCode_SK AND bhd.BookCodeParent = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
-	INNER JOIN RCS_DW.v_SCENARIO_DIM			sd1	ON mbaf.scenario_SK = sd1.scenario_SK    AND sd1.ScenarioDesc = 'Actuals' 
+	INNER JOIN RCS_DW.v_SCENARIO_DIM			sd1	ON mbaf.scenario_SK = sd1.scenario_SK    AND sd1.ScenarioDesc = 'Actuals'
 	INNER JOIN RCS_DW.COMPANY_DIM			cd	ON mbaf.company_SK = cd.company_SK AND cd.IsCurrent=1
 	INNER JOIN HOSPITALITY_DW.PROPERTY_DIM	pd  ON cd.PropertyId_AK = pd.PropertyId_AK    AND pd.IsCurrent = 1    AND pd.PropertyStatus = 'Active' -- only care about active properties
 	INNER JOIN RCS_DW.COST_CENTER_DIM		ccd ON rlbgm.CostCenter_SK = ccd.CostCenter_SK AND ccd.IsCurrent=1
@@ -65,7 +65,7 @@ GROUP BY
     ,rlbgm.LedgerAccountName
     ,rlbgm.CategoryDesc
     ,sd1.scenario_SK
-;    
+;
 
 
 -----------------------------
@@ -93,7 +93,7 @@ SELECT
     ,rlbgm.CategoryDesc
     ,SUM(PeriodAmount) AS PeriodAmount
 FROM  RCS_DW.TEMP_ReportLineItems rlbgm
-	INNER JOIN RCS_DW.TEMP_GLMonthlyBalanceActivity mbaf    ON rlbgm.ReportLineGroupId = mbaf.ReportLineGroupId    
+	INNER JOIN RCS_DW.TEMP_GLMonthlyBalanceActivity mbaf    ON rlbgm.ReportLineGroupId = mbaf.ReportLineGroupId
 	INNER JOIN RCS_DW.Currency_Dim curd ON mbaf.Currency_SK = curd.Currency_SK AND curd.Currency_AK = 'USD' AND curd.IsCurrent=1
 	INNER JOIN RCS_DW.V_BOOKHIERARCHY_DIM bhd    ON mbaf.BookCode_SK = bhd.BookCode_SK  AND bhd.BookCodeParent = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 	INNER JOIN RCS_DW.v_Scenario_Dim sd1     ON mbaf.scenario_SK = sd1.scenario_SK    AND sd1.ScenarioDesc = 'Budget'    AND sd1.Scenario_AK = 'Approved'
@@ -158,7 +158,7 @@ SELECT
     END AS Scenario_Rank
     ,SUM(PeriodAmount) AS PeriodAmount
 FROM RCS_DW.TEMP_ReportLineItems rlbgm
-	INNER JOIN RCS_DW.TEMP_GLMonthlyBalanceActivity mbaf ON rlbgm.ReportLineGroupId = mbaf.ReportLineGroupId  
+	INNER JOIN RCS_DW.TEMP_GLMonthlyBalanceActivity mbaf ON rlbgm.ReportLineGroupId = mbaf.ReportLineGroupId
 	INNER JOIN RCS_DW.Currency_Dim curd ON mbaf.Currency_SK = curd.Currency_SK AND curd.Currency_AK = 'USD' AND curd.IsCurrent=1
 	INNER JOIN RCS_DW.V_BOOKHIERARCHY_DIM bhd    ON mbaf.BookCode_SK = bhd.BookCode_SK    AND bhd.BookCodeParent = 'AM Reporting' -- only care about asset management reporting from a reporting perspective
 	INNER JOIN RCS_DW.SCENARIO_DIM sd1 ON mbaf.scenario_SK = sd1.scenario_SK AND sd1.IsCurrent=1
@@ -235,9 +235,9 @@ SELECT * FROM (
       ,CategoryDesc
       ,PeriodAmount
   FROM RCS_DW.Asset_Review_Actuals acte1
-  
+
   UNION ALL
-    
+
   SELECT
       acte.PropertyId_AK
       ,acte.PropertyName
@@ -283,7 +283,7 @@ SELECT * FROM (
 
   UNION ALL
 
-  SELECT 
+  SELECT
       bcte.PropertyId_AK
       ,bcte.PropertyName
       ,bcte.CostCenterDesc
@@ -361,7 +361,7 @@ SELECT * FROM (
       ,ymd.YearMonth AS AsOfDate
       ,'BOY' AS TimeSeries
       ,'Actual_Forecast' AS Type
-      ,bcte.Scenario_AK AS Scenario  
+      ,bcte.Scenario_AK AS Scenario
       ,bcte.FiscalYear
       ,bcte.FiscalMonth
       ,bcte.ReportLineId
@@ -378,7 +378,7 @@ SELECT * FROM (
 
   UNION ALL
 
-  SELECT 
+  SELECT
       acte.PropertyId_AK
       ,acte.PropertyName
       ,acte.CostCenterDesc
@@ -410,7 +410,7 @@ SELECT * FROM (
       ,ymd.YearMonth AS AsOfDate
       ,'FY' AS TimeSeries
       ,'Actual_Forecast' AS Type
-      ,bcte.Scenario_AK AS Scenario  
+      ,bcte.Scenario_AK AS Scenario
       ,bcte.FiscalYear
       ,bcte.FiscalMonth
       ,bcte.ReportLineId
@@ -424,13 +424,13 @@ SELECT * FROM (
       ON ymd.Year = bcte.Fiscalyear
       AND ymd.Month = bcte.Scenario_Rank
       AND ymd.Month < bcte.FiscalMonth
-  
--------------------  
-  -- start of the last year / two year ago 
-  
+
+-------------------
+  -- start of the last year / two year ago
+
   UNION ALL
 
-  SELECT 
+  SELECT
       acte.PropertyId_AK
       ,acte.PropertyName
       ,acte.CostCenterDesc
@@ -450,10 +450,10 @@ SELECT * FROM (
   FROM YearMonth_Dim ymd
   JOIN RCS_DW.Asset_Review_Actuals acte
       ON ymd.Year - 1 = acte.Fiscalyear -- last year's data
-      AND ymd.Month = acte.FiscalMonth  
+      AND ymd.Month = acte.FiscalMonth
 
   UNION ALL
-    
+
   SELECT
       acte.PropertyId_AK
       ,acte.PropertyName
@@ -462,7 +462,7 @@ SELECT * FROM (
       ,ymd.YearMonth AS AsOfDate
       ,CASE
         WHEN ymd.Month >= acte.FiscalMonth THEN 'YTD'
-        ELSE 'BOY' 
+        ELSE 'BOY'
        END AS TimeSeries
       ,'LY' AS Type
       ,'Actual' AS Scenario
@@ -499,7 +499,7 @@ SELECT * FROM (
       ,acte.PeriodAmount
   FROM YearMonth_Dim ymd
   JOIN RCS_DW.Asset_Review_Actuals acte      ON ymd.Year - 1 = acte.Fiscalyear -- last year's data
-  
+
   UNION ALL
 
   SELECT
@@ -522,10 +522,10 @@ SELECT * FROM (
   FROM YearMonth_Dim ymd
   JOIN RCS_DW.Asset_Review_Actuals acte
       ON ymd.Year - 2 = acte.Fiscalyear -- Two Years Ago data
-      AND ymd.Month = acte.FiscalMonth  
+      AND ymd.Month = acte.FiscalMonth
 
   UNION ALL
-    
+
   SELECT
       acte.PropertyId_AK
       ,acte.PropertyName
@@ -534,7 +534,7 @@ SELECT * FROM (
       ,ymd.YearMonth AS AsOfDate
       ,CASE
         WHEN ymd.Month >= acte.FiscalMonth THEN 'YTD'
-        ELSE 'BOY' 
+        ELSE 'BOY'
        END AS TimeSeries
       ,CAST(acte.FiscalYear AS VARCHAR(15)) AS Type
       ,'Actual' AS Scenario
@@ -548,10 +548,10 @@ SELECT * FROM (
       ,acte.PeriodAmount
   FROM YearMonth_Dim ymd
   JOIN RCS_DW.Asset_Review_Actuals acte ON ymd.Year - 2 = acte.Fiscalyear -- Two Years Ago data
-  
+
   UNION ALL
 
-  SELECT 
+  SELECT
       acte.PropertyId_AK
       ,acte.PropertyName
       ,acte.CostCenterDesc

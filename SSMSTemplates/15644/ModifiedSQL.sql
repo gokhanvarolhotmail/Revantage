@@ -59,7 +59,7 @@ FROM [#GL_Monthly_Balance_Activity_Fact] ;
 
 DROP TABLE IF EXISTS [RCS_DW].[Asset_Review_Actuals] ;
 
---DROP TABLE RCS_DW.Asset_Review_Actuals 
+--DROP TABLE RCS_DW.Asset_Review_Actuals
 --CREATE TABLE RCS_DW.Asset_Review_Actuals
 --WITH (DISTRIBUTION=ROUND_ROBIN,HEAP)
 --AS
@@ -399,7 +399,7 @@ FROM( SELECT
                                                         AND [ymd].[Month] = [bcte].[Scenario_Rank]
                                                         AND [ymd].[Month] < [bcte].[FiscalMonth]
 
-      -- start of the last year / two year ago 
+      -- start of the last year / two year ago
       UNION ALL
       SELECT
           [acte].[PropertyId_AK]
